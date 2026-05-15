@@ -823,7 +823,10 @@ function startLevel(levelId) {
 }
 
 // ========== UI ==========
+let currentScreen = 'mainMenu';
+
 function showScreen(screenId) {
+    currentScreen = screenId;
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(screenId).classList.add('active');
     
@@ -890,8 +893,11 @@ function initUI() {
     });
     
     document.getElementById('backBtn').addEventListener('click', () => {
-        if (game.isPlaying === false && game.level) {
-            if (confirm('Вернуться в меню?')) {
+        if (currentScreen === 'settingsScreen' && game.level) {
+            // Вернуться в игру из настроек
+            showScreen('gameScreen');
+        } else if (game.isPlaying === false && game.level) {
+            if (confirm('Вернуться в меню? Прогресс уровня не сохранится.')) {
                 showScreen('mainMenu');
             }
         } else {
