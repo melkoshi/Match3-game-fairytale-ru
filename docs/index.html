@@ -65,6 +65,13 @@
         }
         .popup-title { font-size: 24px; color: #ffd700; margin-bottom: 15px; }
         .popup-text { font-size: 14px; color: #d4c4a8; margin-bottom: 20px; }
+        .shuffle-msg {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9); color: #ffd700; font-size: 18px;
+            padding: 20px 30px; border-radius: 15px; border: 2px solid #ffd700;
+            z-index: 50; display: none;
+        }
+        .shuffle-msg.active { display: block; }
     </style>
 </head>
 <body>
@@ -98,6 +105,21 @@
                 <button class="setting-btn" data-setting="quality" data-value="low">Низкое</button>
             </div>
         </div>
+        <div class="settings-group">
+            <label class="settings-label">🔊 Звук</label>
+            <div class="settings-row">
+                <button class="setting-btn active" data-setting="sound" data-value="on">Вкл</button>
+                <button class="setting-btn" data-setting="sound" data-value="off">Выкл</button>
+            </div>
+        </div>
+        <div class="settings-group">
+            <label class="settings-label">🎵 Музыка</label>
+            <div class="settings-row">
+                <button class="setting-btn active" data-setting="music" data-value="on">Вкл</button>
+                <button class="setting-btn" data-setting="music" data-value="off">Выкл</button>
+            </div>
+        </div>
+        <button class="btn btn-secondary" id="resetProgress">🔄 Сбросить прогресс</button>
         <button class="btn btn-secondary" id="settingsBack">⬅️ Назад</button>
     </div>
 
@@ -131,14 +153,42 @@
         </div>
     </div>
 
+    <div class="shuffle-msg" id="shuffleMsg">🔀 Перемешиваем доску...</div>
+
 <script>
 // ========== ИГРОВАЯ ЛОГИКА ==========
 
+// Обычные иконки
 const ICONS = {
     BERRY: '🍓', MUSHROOM: '🍄', FLOWER: '🌸', MATRYOSHKA: '🪆',
     BALALAIKA: '🎸', KARAWAY: '🍞', BEAR: '🐻', FOX: '🦊'
 };
 const ICON_TYPES = Object.keys(ICONS);
+
+// Специальные иконки
+const SPECIAL = {
+    ROCKET_H: { emoji: '🚀', name: 'Ракета', color: '#ffd700', points: 50 },
+    ROCKET_V: { emoji: '🚀', name: 'Ракета', color: '#ffd700', points: 50 },
+    BOMB: { emoji: '💣', name: 'Бомба', color: '#ff4500', points: 75 },
+    DIAGONAL: { emoji: '✨', name: 'Диа-бомба', color: '#ff69b4', points: 100 }
+};
+const SPECIAL_TYPES = Object.keys(SPECIAL);
+
+function isSpecial(type) {
+    return SPECIAL_TYPES.includes(type);
+}
+
+function getEmoji(type) {
+    if (ICONS[type]) return ICONS[type];
+    if (SPECIAL[type]) return SPECIAL[type].emoji;
+    return '🍓';
+}
+
+function getPoints(type) {
+    if (ICONS[type]) return 10;
+    if (SPECIAL[type]) return SPECIAL[type].points;
+    return 10;
+}
 
 // Уровни
 const LEVELS = [
@@ -168,7 +218,6 @@ let game = {
     target: 0,
     selected: null,
     isPlaying: true,
-    canvasCtx: null,
     cellSize: 40,
     boardOffset: { x: 0, y: 0 }
 };
@@ -200,7 +249,6 @@ const Renderer = {
     drawBoard() {
         this.clear();
         
-        // Фон доски
         const cols = game.level.cols;
         const rows = game.level.rows;
         this.ctx.fillStyle = 'rgba(45, 27, 78, 0.8)';
@@ -214,7 +262,6 @@ const Renderer = {
         this.ctx.fill();
         this.ctx.stroke();
         
-        // Клетки
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
                 if (game.board[r][c]) {
@@ -230,19 +277,23 @@ const Renderer = {
         const size = this.cellSize;
         const padding = 2;
         
-        // Фон клетки
-        this.ctx.fillStyle = 'rgba(92, 61, 30, 0.6)';
+        // Фон в зависимости от типа
+        let bgColor = 'rgba(92, 61, 30, 0.6)';
+        if (type === 'ROCKET_H' || type === 'ROCKET_V') bgColor = 'rgba(255, 215, 0, 0.4)';
+        else if (type === 'BOMB') bgColor = 'rgba(255, 69, 0, 0.4)';
+        else if (type === 'DIAGONAL') bgColor = 'rgba(255, 105, 180, 0.4)';
+        
+        this.ctx.fillStyle = bgColor;
         this.ctx.beginPath();
         this.ctx.roundRect(x + padding, y + padding, size - padding * 2, size - padding * 2, 6);
         this.ctx.fill();
         
-        // Рамка
         this.ctx.strokeStyle = '#5c3d1e';
         this.ctx.lineWidth = 1;
         this.ctx.stroke();
         
         // Иконка
-        const emoji = ICONS[type] || '🍓';
+        const emoji = getEmoji(type);
         const fontSize = size * 0.65;
         this.ctx.font = `${fontSize}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`;
         this.ctx.textAlign = 'center';
@@ -299,7 +350,61 @@ function createBoard(cols, rows) {
     return board;
 }
 
-function findMatches() {
+function shuffleBoard() {
+    const rows = game.level.rows;
+    const cols = game.level.cols;
+    const cells = [];
+    
+    // Собираем все обычные иконки
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            if (!isSpecial(game.board[r][c])) {
+                cells.push(game.board[r][c]);
+            }
+        }
+    }
+    
+    // Перемешиваем
+    for (let i = cells.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cells[i], cells[j]] = [cells[j], cells[i]];
+    }
+    
+    // Распределяем обратно
+    let idx = 0;
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            if (!isSpecial(game.board[r][c])) {
+                game.board[r][c] = cells[idx++];
+            }
+        }
+    }
+}
+
+function hasValidMoves() {
+    const rows = game.level.rows;
+    const cols = game.level.cols;
+    
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            // Проверяем обмен с правым
+            if (c < cols - 1) {
+                const board = JSON.parse(JSON.stringify(game.board));
+                [board[r][c], board[r][c+1]] = [board[r][c+1], board[r][c]];
+                if (findMatchesOnBoard(board).length > 0) return true;
+            }
+            // Проверяем обмен с нижним
+            if (r < rows - 1) {
+                const board = JSON.parse(JSON.stringify(game.board));
+                [board[r][c], board[r+1][c]] = [board[r+1][c], board[r][c]];
+                if (findMatchesOnBoard(board).length > 0) return true;
+            }
+        }
+    }
+    return false;
+}
+
+function findMatchesOnBoard(board) {
     const matches = [];
     const rows = game.level.rows;
     const cols = game.level.cols;
@@ -308,7 +413,7 @@ function findMatches() {
     for (let r = 0; r < rows; r++) {
         let start = 0;
         for (let c = 1; c <= cols; c++) {
-            if (c < cols && game.board[r][c] === game.board[r][start]) {
+            if (c < cols && board[r][c] === board[r][start] && board[r][start] && !isSpecial(board[r][start])) {
                 continue;
             }
             if (c - start >= 3) {
@@ -324,7 +429,7 @@ function findMatches() {
     for (let c = 0; c < cols; c++) {
         let start = 0;
         for (let r = 1; r <= rows; r++) {
-            if (r < rows && game.board[r][c] === game.board[start][c]) {
+            if (r < rows && board[r][c] === board[start][c] && board[start][c] && !isSpecial(board[start][c])) {
                 continue;
             }
             if (r - start >= 3) {
@@ -339,20 +444,151 @@ function findMatches() {
     return matches;
 }
 
-function removeMatches(matches) {
-    const toRemove = [];
-    for (const match of matches) {
-        for (const cell of match.cells) {
-            toRemove.push(`${cell.row},${cell.col}`);
+function findMatches() {
+    return findMatchesOnBoard(game.board);
+}
+
+// Найти квадрат 2x2 одинаковых иконок
+function findSquares() {
+    const squares = [];
+    const rows = game.level.rows;
+    const cols = game.level.cols;
+    
+    for (let r = 0; r < rows - 1; r++) {
+        for (let c = 0; c < cols - 1; c++) {
+            const type = game.board[r][c];
+            if (type && !isSpecial(type) &&
+                game.board[r][c+1] === type &&
+                game.board[r+1][c] === type &&
+                game.board[r+1][c+1] === type) {
+                squares.push({
+                    cells: [
+                        { row: r, col: c },
+                        { row: r, col: c+1 },
+                        { row: r+1, col: c },
+                        { row: r+1, col: c+1 }
+                    ],
+                    center: { row: r, col: c }
+                });
+            }
         }
     }
-    const unique = [...new Set(toRemove)];
-    game.score += unique.length * 10;
-    for (const key of unique) {
-        const [r, c] = key.split(',').map(Number);
-        game.board[r][c] = null;
+    return squares;
+}
+
+function removeMatches(matches, squares) {
+    const toRemove = new Set();
+    const specials = [];
+    
+    // Собираем клетки из обычных матчей
+    for (const match of matches) {
+        for (const cell of match.cells) {
+            toRemove.add(`${cell.row},${cell.col}`);
+        }
     }
-    return unique.length;
+    
+    // Собираем клетки из квадратов
+    for (const square of squares) {
+        for (const cell of square.cells) {
+            toRemove.add(`${cell.row},${cell.col}`);
+        }
+    }
+    
+    // Определяем какие специальные создать
+    const removeArr = Array.from(toRemove).map(k => {
+        const [r, c] = k.split(',').map(Number);
+        return { row: r, col: c };
+    });
+    
+    // 4+ в ряд = ракета
+    for (const match of matches) {
+        if (match.length >= 4) {
+            const center = match.cells[Math.floor(match.cells.length / 2)];
+            const type = match.length >= 5 ? 'BOMB' : (match.length === 4 ? 'ROCKET_H' : null);
+            if (type) {
+                specials.push({ row: center.row, col: center.col, type });
+            }
+        }
+    }
+    
+    // Квадрат = диагональная бомба
+    for (const square of squares) {
+        specials.push({ row: square.center.row, col: square.center.col, type: 'DIAGONAL' });
+    }
+    
+    // Удаляем клетки (кроме тех где будут специальные)
+    for (const key of toRemove) {
+        const [r, c] = key.split(',').map(Number);
+        const isSpecialCell = specials.some(s => s.row === r && s.col === c);
+        if (!isSpecialCell) {
+            const cellType = game.board[r][c];
+            game.score += getPoints(cellType);
+            game.board[r][c] = null;
+        }
+    }
+    
+    // Создаём специальные
+    for (const special of specials) {
+        game.board[special.row][special.col] = special.type;
+    }
+    
+    return specials.length > 0;
+}
+
+function activateSpecial(row, col) {
+    const type = game.board[row][col];
+    if (!type || !isSpecial(type)) return;
+    
+    const rows = game.level.rows;
+    const cols = game.level.cols;
+    const toRemove = [];
+    
+    if (type === 'ROCKET_H') {
+        // Горизонтальная ракета - взрывает всю строку
+        for (let c = 0; c < cols; c++) {
+            toRemove.push({ row, col: c });
+        }
+        game.score += cols * 15;
+    } else if (type === 'ROCKET_V') {
+        // Вертикальная ракета - взрывает весь столбец
+        for (let r = 0; r < rows; r++) {
+            toRemove.push({ row: r, col });
+        }
+        game.score += rows * 15;
+    } else if (type === 'BOMB') {
+        // Бомба - взрывает область 3x3
+        for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+                const r = row + dr;
+                const c = col + dc;
+                if (r >= 0 && r < rows && c >= 0 && c < cols) {
+                    toRemove.push({ row: r, col: c });
+                }
+            }
+        }
+        game.score += 9 * 20;
+    } else if (type === 'DIAGONAL') {
+        // Диагональная бомба - взрывает по диагоналям
+        for (let d = -Math.max(rows, cols); d <= Math.max(rows, cols); d++) {
+            if (row + d >= 0 && row + d < rows && col + d >= 0 && col + d < cols) {
+                toRemove.push({ row: row + d, col: col + d });
+            }
+            if (row + d >= 0 && row + d < rows && col - d >= 0 && col - d < cols) {
+                toRemove.push({ row: row + d, col: col - d });
+            }
+        }
+        game.score += 15 * 25;
+    }
+    
+    // Удаляем клетки
+    for (const cell of toRemove) {
+        if (game.board[cell.row][cell.col]) {
+            if (!isSpecial(game.board[cell.row][cell.col])) {
+                game.score += getPoints(game.board[cell.row][cell.col]);
+            }
+            game.board[cell.row][cell.col] = null;
+        }
+    }
 }
 
 function dropAndFill() {
@@ -377,15 +613,57 @@ function dropAndFill() {
 }
 
 async function processMatches() {
-    let matches = findMatches();
-    while (matches.length > 0) {
-        removeMatches(matches);
+    let loopCount = 0;
+    const maxLoops = 50;
+    
+    while (loopCount < maxLoops) {
+        loopCount++;
+        
+        const matches = findMatches();
+        const squares = findSquares();
+        
+        if (matches.length === 0 && squares.length === 0) break;
+        
+        const hadSpecials = removeMatches(matches, squares);
         Renderer.drawBoard();
         await delay(200);
+        
+        // Активируем все созданные специальные иконки
+        if (hadSpecials) {
+            const specials = [];
+            for (let r = 0; r < game.level.rows; r++) {
+                for (let c = 0; c < game.level.cols; c++) {
+                    if (isSpecial(game.board[r][c])) {
+                        specials.push({ row: r, col: c });
+                    }
+                }
+            }
+            for (const s of specials) {
+                activateSpecial(s.row, s.col);
+            }
+            Renderer.drawBoard();
+            await delay(200);
+        }
+        
         dropAndFill();
         Renderer.drawBoard();
         await delay(200);
-        matches = findMatches();
+        
+        // Проверяем есть ли ещё ходы
+        if (!hasValidMoves()) {
+            document.getElementById('shuffleMsg').classList.add('active');
+            await delay(1000);
+            shuffleBoard();
+            Renderer.drawBoard();
+            await delay(500);
+            document.getElementById('shuffleMsg').classList.remove('active');
+            
+            // Если всё ещё нет ходов, создаём новую доску
+            if (!hasValidMoves()) {
+                game.board = createBoard(game.level.cols, game.level.rows);
+                Renderer.drawBoard();
+            }
+        }
     }
 }
 
@@ -397,7 +675,6 @@ async function tryMove(r1, c1, r2, c2) {
     game.selected = null;
     game.isPlaying = false;
     
-    // Меняем местами
     const temp = game.board[r1][c1];
     game.board[r1][c1] = game.board[r2][c2];
     game.board[r2][c2] = temp;
@@ -406,9 +683,9 @@ async function tryMove(r1, c1, r2, c2) {
     await delay(150);
     
     const matches = findMatches();
+    const squares = findSquares();
     
-    if (matches.length === 0) {
-        // Возвращаем обратно
+    if (matches.length === 0 && squares.length === 0) {
         game.board[r2][c2] = game.board[r1][c1];
         game.board[r1][c1] = temp;
         Renderer.drawBoard();
@@ -422,7 +699,6 @@ async function tryMove(r1, c1, r2, c2) {
     await processMatches();
     updateUI();
     
-    // Проверяем конец игры
     if (game.score >= game.target) {
         document.getElementById('winText').textContent = `Очки: ${game.score}`;
         document.getElementById('winPopup').classList.add('active');
@@ -455,6 +731,12 @@ function startLevel(levelId) {
     
     Renderer.setBoardSize(game.level.cols, game.level.rows, size);
     game.board = createBoard(game.level.cols, game.level.rows);
+    
+    // Проверяем что есть ходы
+    if (!hasValidMoves()) {
+        shuffleBoard();
+    }
+    
     Renderer.drawBoard();
     updateUI();
     
@@ -560,14 +842,49 @@ function initUI() {
         showScreen('mainMenu');
     });
     
+    document.getElementById('resetProgress').addEventListener('click', () => {
+        if (confirm('Сбросить весь прогресс?')) {
+            localStorage.removeItem('match3_progress');
+            renderLevels();
+            alert('Прогресс сброшен!');
+        }
+    });
+    
     // Settings buttons
     document.querySelectorAll('[data-setting]').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll(`[data-setting="${btn.dataset.setting}"]`).forEach(b => {
                 b.classList.toggle('active', b === btn);
             });
+            const settings = {
+                quality: document.querySelector('[data-setting="quality"].active')?.dataset.value || 'high',
+                sound: document.querySelector('[data-setting="sound"].active')?.dataset.value || 'on',
+                music: document.querySelector('[data-setting="music"].active')?.dataset.value || 'on'
+            };
+            localStorage.setItem('match3_settings', JSON.stringify(settings));
         });
     });
+    
+    // Load settings
+    const savedSettings = localStorage.getItem('match3_settings');
+    if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        if (settings.quality) {
+            document.querySelectorAll('[data-setting="quality"]').forEach(b => {
+                b.classList.toggle('active', b.dataset.value === settings.quality);
+            });
+        }
+        if (settings.sound) {
+            document.querySelectorAll('[data-setting="sound"]').forEach(b => {
+                b.classList.toggle('active', b.dataset.value === settings.sound);
+            });
+        }
+        if (settings.music) {
+            document.querySelectorAll('[data-setting="music"]').forEach(b => {
+                b.classList.toggle('active', b.dataset.value === settings.music);
+            });
+        }
+    }
     
     // Canvas click
     document.getElementById('gameCanvas').addEventListener('click', (e) => {
