@@ -778,6 +778,7 @@ async function tryMove(r1, c1, r2, c2) {
     
     if (game.score >= game.target) {
         Sound.play('win');
+        saveProgress();
         document.getElementById('winText').textContent = `Очки: ${game.score}`;
         document.getElementById('winPopup').classList.add('active');
     } else if (game.movesLeft <= 0) {
@@ -788,6 +789,10 @@ async function tryMove(r1, c1, r2, c2) {
     }
 }
 
+}
+
+}
+
 function updateUI() {
     document.getElementById('levelDisplay').textContent = game.level.id;
     document.getElementById('scoreDisplay').textContent = game.score;
@@ -795,230 +800,15 @@ function updateUI() {
     document.getElementById('targetDisplay').textContent = `Цель: ${game.target} очков`;
 }
 
-function startLevel(levelId) {
-    game.level = LEVELS.find(l => l.id === levelId) || LEVELS[0];
-    game.score = 0;
-    game.movesLeft = game.level.moves;
-    game.target = game.level.target;
-    game.selected = null;
-    game.isPlaying = true;
-    
-    const canvas = document.getElementById('gameCanvas');
-    const size = 360;
-    canvas.width = size;
-    canvas.height = size;
-    
-    Renderer.setBoardSize(game.level.cols, game.level.rows, size);
-    game.board = createBoard(game.level.cols, game.level.rows);
-    
-    // Проверяем что есть ходы
-    if (!hasValidMoves()) {
-        shuffleBoard();
-    }
-    
-    Renderer.drawBoard();
-    updateUI();
-    
-    showScreen('gameScreen');
-}
-
-// ========== UI ==========
-let currentScreen = 'mainMenu';
-
-function showScreen(screenId) {
-    currentScreen = screenId;
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(screenId).classList.add('active');
-    
-    const backBtn = document.getElementById('backBtn');
-    backBtn.style.display = (screenId === 'mainMenu') ? 'none' : 'block';
-    
-    const title = document.querySelector('.header h1');
-    if (screenId === 'levelSelect') title.textContent = '🍓 Выбор Уровня';
-    else if (screenId === 'settingsScreen') title.textContent = '⚙️ Настройки';
-    else if (screenId === 'gameScreen') title.textContent = `🍓 Уровень ${game.level ? game.level.id : 1}`;
-    else title.textContent = '🍓 Летняя Сказка';
-}
-
-function renderLevels() {
-    const grid = document.getElementById('levelsGrid');
-    grid.innerHTML = '';
-    
+function saveProgress() {
     const saved = localStorage.getItem('match3_progress');
-    const completed = saved ? JSON.parse(saved).completedLevels : [];
-    
-    for (let i = 1; i <= 15; i++) {
-        const btn = document.createElement('button');
-        btn.className = 'level-btn';
-        btn.textContent = i;
-        
-        if (completed.includes(i)) {
-            btn.classList.add('completed');
-        }
-        
-        if (i === 1 || completed.includes(i - 1)) {
-            btn.disabled = false;
-        } else {
-            btn.disabled = true;
-        }
-        
-        btn.addEventListener('click', () => {
-            if (!btn.disabled) startLevel(i);
-        });
-        
-        grid.appendChild(btn);
+    const progress = saved ? JSON.parse(saved) : { completedLevels: [], totalScore: 0, gamesPlayed: 0 };
+    if (!progress.completedLevels.includes(game.level.id)) {
+        progress.completedLevels.push(game.level.id);
+        progress.totalScore += game.score;
+        progress.gamesPlayed = (progress.gamesPlayed || 0) + 1;
     }
+    localStorage.setItem('match3_progress', JSON.stringify(progress));
 }
 
-function initUI() {
-    document.getElementById('playBtn').addEventListener('click', () => {
-        renderLevels();
-        showScreen('levelSelect');
-    });
-    
-    document.getElementById('settingsBtn').addEventListener('click', () => {
-        showScreen('settingsScreen');
-    });
-    
-    document.getElementById('settingsBack').addEventListener('click', () => {
-        showScreen('mainMenu');
-    });
-    
-    document.getElementById('backToMenu').addEventListener('click', () => {
-        showScreen('mainMenu');
-    });
-    
-    document.getElementById('menuBtn').addEventListener('click', () => {
-        showScreen('settingsScreen');
-    });
-    
-    document.getElementById('backBtn').addEventListener('click', () => {
-        if (currentScreen === 'settingsScreen' && game.level) {
-            // Вернуться в игру из настроек
-            showScreen('gameScreen');
-        } else if (game.isPlaying === false && game.level) {
-            if (confirm('Вернуться в меню? Прогресс уровня не сохранится.')) {
-                showScreen('mainMenu');
-            }
-        } else {
-            showScreen('mainMenu');
-        }
-    });
-    
-    document.getElementById('nextLevelBtn').addEventListener('click', () => {
-        document.getElementById('winPopup').classList.remove('active');
-        const nextLevel = game.level.id + 1;
-        if (nextLevel <= 15) startLevel(nextLevel);
-        else showScreen('mainMenu');
-    });
-    
-    document.getElementById('winMenuBtn').addEventListener('click', () => {
-        document.getElementById('winPopup').classList.remove('active');
-        showScreen('mainMenu');
-    });
-    
-    document.getElementById('retryBtn').addEventListener('click', () => {
-        document.getElementById('losePopup').classList.remove('active');
-        startLevel(game.level.id);
-    });
-    
-    document.getElementById('loseMenuBtn').addEventListener('click', () => {
-        document.getElementById('losePopup').classList.remove('active');
-        showScreen('mainMenu');
-    });
-    
-    document.getElementById('resetProgress').addEventListener('click', () => {
-        if (confirm('Сбросить весь прогресс?')) {
-            localStorage.removeItem('match3_progress');
-            renderLevels();
-            alert('Прогресс сброшен!');
-        }
-    });
-    
-    document.getElementById('soundToggle')?.addEventListener('click', () => {
-        const enabled = Sound.toggle();
-        document.getElementById('soundToggle').textContent = enabled ? '🔊 Вкл' : '🔇 Выкл';
-    });
-    
-    // Settings buttons
-    document.querySelectorAll('[data-setting]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll(`[data-setting="${btn.dataset.setting}"]`).forEach(b => {
-                b.classList.toggle('active', b === btn);
-            });
-            const settings = {
-                quality: document.querySelector('[data-setting="quality"].active')?.dataset.value || 'high',
-                sound: document.querySelector('[data-setting="sound"].active')?.dataset.value || 'on',
-                music: document.querySelector('[data-setting="music"].active')?.dataset.value || 'on'
-            };
-            localStorage.setItem('match3_settings', JSON.stringify(settings));
-        });
-    });
-    
-    // Load settings
-    const savedSettings = localStorage.getItem('match3_settings');
-    if (savedSettings) {
-        const settings = JSON.parse(savedSettings);
-        if (settings.quality) {
-            document.querySelectorAll('[data-setting="quality"]').forEach(b => {
-                b.classList.toggle('active', b.dataset.value === settings.quality);
-            });
-        }
-        if (settings.sound) {
-            document.querySelectorAll('[data-setting="sound"]').forEach(b => {
-                b.classList.toggle('active', b.dataset.value === settings.sound);
-            });
-        }
-        if (settings.music) {
-            document.querySelectorAll('[data-setting="music"]').forEach(b => {
-                b.classList.toggle('active', b.dataset.value === settings.music);
-            });
-        }
-    }
-    
-    // Canvas click
-    document.getElementById('gameCanvas').addEventListener('click', (e) => {
-        if (!game.isPlaying || !game.level) return;
-        
-        const rect = e.target.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        
-        const col = Math.floor((x - Renderer.boardOffset.x) / Renderer.cellSize);
-        const row = Math.floor((y - Renderer.boardOffset.y) / Renderer.cellSize);
-        
-        if (row < 0 || row >= game.level.rows || col < 0 || col >= game.level.cols) return;
-        
-        if (!game.selected) {
-            game.selected = { row, col };
-            Sound.play('select');
-            Renderer.drawBoard();
-            Renderer.drawSelection(row, col);
-        } else {
-            const dr = Math.abs(row - game.selected.row);
-            const dc = Math.abs(col - game.selected.col);
-            
-            if ((dr === 1 && dc === 0) || (dr === 0 && dc === 1)) {
-                tryMove(game.selected.row, game.selected.col, row, col);
-            } else if (row === game.selected.row && col === game.selected.col) {
-                game.selected = null;
-                Renderer.drawBoard();
-            } else {
-                game.selected = { row, col };
-                Renderer.drawBoard();
-                Renderer.drawSelection(row, col);
-            }
-        }
-    });
-}
-
-// Init
-document.addEventListener('DOMContentLoaded', () => {
-    Renderer.init();
-    Sound.init();
-    initUI();
-    showScreen('mainMenu');
-});
-</script>
-</body>
-</html>
+function startLevel(levelId) {
