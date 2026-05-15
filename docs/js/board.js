@@ -99,14 +99,15 @@ const Board = {
     // Удалить клетки и сдвинуть вниз
     removeCells(cells) {
         const removed = [];
-
-        for (const { row, col } of cells) {
-            if (this.data[row] && this.data[row][col]) {
-                removed.push(this.data[row][col]);
-                this.data[row][col] = null;
+        for (let i = 0; i < cells.length; i++) {
+            const { row, col } = cells[i];
+            if (row >= 0 && row < this.rows && col >= 0 && col < this.cols) {
+                if (this.data[row] && this.data[row][col] !== null) {
+                    removed.push(this.data[row][col]);
+                    this.data[row][col] = null;
+                }
             }
         }
-
         return removed;
     },
 

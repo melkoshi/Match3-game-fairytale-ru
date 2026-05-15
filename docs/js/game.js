@@ -1,4 +1,4 @@
-// Главная игровая логика
+// Главная игровая логика - исправленная версия
 
 const Game = {
     currentLevel: 1,
@@ -6,15 +6,8 @@ const Game = {
     moves: 0,
     target: 0,
     isPlaying: false,
-    isAnimating: false,
     selectedCell: null,
-    board: null,
-    levelConfig: null,
 
-    // Активные анимации для отмены
-    activeAnimations: [],
-
-    // Инициализация игры
     init() {
         Renderer.init('gameCanvas');
         initLevels();
@@ -22,13 +15,11 @@ const Game = {
         this.setupCanvasEvents();
     },
 
-    // Настройка событий canvas
     setupCanvasEvents() {
         const canvas = document.getElementById('gameCanvas');
         canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
     },
 
-    // Начать уровень
     startLevel(levelId) {
         this.currentLevel = levelId;
         this.levelConfig = getLevel(levelId);
@@ -36,16 +27,10 @@ const Game = {
         this.moves = this.levelConfig.moves;
         this.target = this.levelConfig.target;
         this.isPlaying = true;
-        this.isAnimating = false;
         this.selectedCell = null;
 
-        // Отменяем все активные анимации
-        this.cancelAllAnimations();
-
-        // Инициализируем доску
         Board.init(this.levelConfig.cols, this.levelConfig.rows);
 
-        // Устанавливаем размер canvas
         const canvas = document.getElementById('gameCanvas');
         const settings = Storage.getSettings();
         const size = settings.quality === 'low' ? 270 : 360;
@@ -54,138 +39,99 @@ const Game = {
 
         Renderer.setBoardSize(this.levelConfig.cols, this.levelConfig.rows, size);
         Renderer.drawBoard(Board);
-
-        // Обновляем UI
         UI.updateGameDisplay(this.currentLevel, this.score, this.moves, this.target);
-
-        // Сохраняем текущий уровень
         Storage.saveCurrentLevel(levelId);
     },
 
-    // Отменить все активные анимации
-    cancelAllAnimations() {
-        this.activeAnimations.forEach(animId => {
-            cancelAnimationFrame(animId);
-        });
-        this.activeAnimations = [];
-    },
-
-    // Зарегистрировать анимацию
-    registerAnimation(animId) {
-        this.activeAnimations.push(animId);
-    },
-
-    // Обработка клика по canvas
     handleCanvasClick(e) {
-        if (!this.isPlaying || this.isAnimating) return;
+        if (!this.isPlaying) return;
 
         const rect = e.target.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-        // Вычисляем клетку
         const col = Math.floor((x - Renderer.boardOffset.x) / Renderer.cellSize);
         const row = Math.floor((y - Renderer.boardOffset.y) / Renderer.cellSize);
 
-        // Проверяем границы
         if (row < 0 || row >= Board.rows || col < 0 || col >= Board.cols) return;
 
-        const clickedCell = Board.getCell(row, col);
-        if (!clickedCell) return;
+        const cell = Board.getCell(row, col);
+        if (!cell) return;
 
-        // Если нет выбранной клетки - выбираем
         if (!this.selectedCell) {
             this.selectedCell = { row, col };
             Renderer.drawBoard(Board);
             Renderer.drawSelection(row, col);
-            return;
-        }
-
-        // Проверяем является ли кликнутая клетка соседней
-        const dr = Math.abs(row - this.selectedCell.row);
-        const dc = Math.abs(col - this.selectedCell.col);
-
-        if ((dr === 1 && dc === 0) || (dr === 0 && dc === 1)) {
-            // Пробуем сделать ход
-            this.makeMove(this.selectedCell.row, this.selectedCell.col, row, col);
-        } else if (row === this.selectedCell.row && col === this.selectedCell.col) {
-            // Кликнули на ту же клетку - снимаем выделение
-            this.selectedCell = null;
-            Renderer.drawBoard(Board);
         } else {
-            // Выбираем новую клетку
-            this.selectedCell = { row, col };
-            Renderer.drawBoard(Board);
-            Renderer.drawSelection(row, col);
+            const dr = Math.abs(row - this.selectedCell.row);
+            const dc = Math.abs(col - this.selectedCell.col);
+
+            if ((dr === 1 && dc === 0) || (dr === 0 && dc === 1)) {
+                this.trySwap(this.selectedCell.row, this.selectedCell.col, row, col);
+            } else if (row === this.selectedCell.row && col === this.selectedCell.col) {
+                this.selectedCell = null;
+                Renderer.drawBoard(Board);
+            } else {
+                this.selectedCell = { row, col };
+                Renderer.drawBoard(Board);
+                Renderer.drawSelection(row, col);
+            }
         }
     },
 
-    // Сделать ход
-    async makeMove(row1, col1, row2, col2) {
-        this.isAnimating = true;
+    async trySwap(row1, col1, row2, col2) {
+        this.isPlaying = false;
         this.selectedCell = null;
 
-        // Меняем клетки местами
         Board.swap(row1, col1, row2, col2);
+        Renderer.drawBoard(Board);
 
-        // Проверяем матчи
+        await this.delay(200);
+
         const matches = Board.findMatches();
 
         if (matches.length === 0) {
-            // Нет матчей - возвращаем обратно
-            await this.animateSwap(row1, col1, row2, col2, true);
             Board.swap(row1, col1, row2, col2);
             Renderer.drawBoard(Board);
-            this.isAnimating = false;
+            this.isPlaying = true;
             return;
         }
 
-        // Есть матчи!
-        await this.animateSwap(row1, col1, row2, col2, false);
-
-        // Уменьшаем ходы
         this.moves--;
         UI.updateGameDisplay(this.currentLevel, this.score, this.moves, this.target);
 
-        // Обрабатываем матчи
-        await this.processMatchesLoop();
+        await this.processMatches();
 
-        // Проверяем условия победы/поражения
-        this.checkGameEnd();
-
-        this.isAnimating = false;
+        if (this.moves <= 0 && this.score < this.target) {
+            UI.showLosePopup();
+        } else if (this.score >= this.target) {
+            Storage.completeLevel(this.currentLevel, this.score);
+            UI.showWinPopup(this.score);
+        } else {
+            this.isPlaying = true;
+        }
     },
 
-    // Анимация обмена
-    animateSwap(row1, col1, row2, col2, reverse) {
-        return new Promise(resolve => {
-            Renderer.drawBoard(Board);
-            setTimeout(resolve, 200);
-        });
-    },
-
-    // Цикл обработки матчей
-    async processMatchesLoop() {
+    async processMatches() {
         let matches = Board.findMatches();
+        let loopSafety = 0;
+        const maxLoops = 100;
 
-        while (matches.length > 0) {
-            // Собираем все клетки для удаления и создаём специальные иконки
-            let allCellsToRemove = [];
+        while (matches.length > 0 && loopSafety < maxLoops) {
+            loopSafety++;
+
+            let cellsToRemove = [];
             let specialCells = [];
 
             for (const match of matches) {
                 const result = Board.processMatches(match);
-                allCellsToRemove.push(...result.cellsToRemove);
-
-                for (const special of result.specialCreated) {
-                    specialCells.push(special);
-                }
+                cellsToRemove = cellsToRemove.concat(result.cellsToRemove);
+                specialCells = specialCells.concat(result.specialCreated);
             }
 
-            // Дедуплицируем клетки для удаления (SET'ом)
             const uniqueCells = [];
             const seen = new Set();
-            for (const cell of allCellsToRemove) {
+            for (const cell of cellsToRemove) {
                 const key = `${cell.row},${cell.col}`;
                 if (!seen.has(key)) {
                     seen.add(key);
@@ -193,67 +139,37 @@ const Game = {
                 }
             }
 
-            // Удаляем клетки
-            Board.removeCells(uniqueCells);
-            Renderer.drawBoard(Board);
-
-            // Просто показываем очки без анимации (чтобы не было конфликтов)
             for (const cell of uniqueCells) {
-                // ничего не делаем - визуально клетки уже исчезли
+                const removed = Board.getCell(cell.row, cell.col);
+                if (removed && removed.type) {
+                    const icon = getIcon(removed.type);
+                    this.score += icon.points || 10;
+                }
             }
 
-            // Перерисовываем и ждём
-            await this.delay(150);
+            Board.removeCells(uniqueCells);
+            Renderer.drawBoard(Board);
+            await this.delay(200);
 
-            // Сдвигаем клетки вниз и заполняем сверху
             Board.dropCells();
             Renderer.drawBoard(Board);
-            await this.delay(150);
+            await this.delay(200);
 
-            // Обновляем счёт
             UI.updateGameDisplay(this.currentLevel, this.score, this.moves, this.target);
 
-            // Проверяем новые матчи
             matches = Board.findMatches();
         }
 
-        // Проверяем возможность хода
         if (!Board.hasValidMoves()) {
             Board.init(this.levelConfig.cols, this.levelConfig.rows);
             Renderer.drawBoard(Board);
         }
     },
 
-    // Проверить конец игры
-    checkGameEnd() {
-        if (this.score >= this.target) {
-            this.isPlaying = false;
-            Storage.completeLevel(this.currentLevel, this.score);
-            UI.showWinPopup(this.score);
-        } else if (this.moves <= 0) {
-            this.isPlaying = false;
-            UI.showLosePopup();
-        }
-    },
-
-    // Пауза
-    pause() {
-        this.isPlaying = false;
-    },
-
-    // Возобновить
-    resume() {
-        this.isPlaying = true;
-    },
-
-    // Задержка
     delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 };
 
-// Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', () => Game.init());
-
-// Экспорт
 window.Game = Game;
