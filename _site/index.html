@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🍓 Древнерусская Летняя Сказка</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 50%, #1a0a2e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #f4e4bc;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            width: 100%;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 2px solid #8b5a2b;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .header-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .header-btn:hover {
+            background: rgba(255,215,0,0.2);
+        }
+
+        /* Main Menu */
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .title {
+            font-size: 28px;
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.7);
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #d4c4a8;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(180deg, #8b5a2b 0%, #5c3d1e 100%);
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            padding: 15px 40px;
+            font-size: 18px;
+            color: #ffd700;
+            cursor: pointer;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 280px;
+            transition: all 0.2s;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+
+        .btn:hover, .btn:active {
+            background: linear-gradient(180deg, #a67030 0%, #7a5030 100%);
+            transform: scale(1.05);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(180deg, #4a3728 0%, #2d1f15 100%);
+            border-color: #c9a959;
+            font-size: 14px;
+            padding: 10px 20px;
+        }
+
+        /* Level Select */
+        .levels-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            width: 100%;
+        }
+
+        .level-btn {
+            aspect-ratio: 1;
+            background: linear-gradient(180deg, #5c3d1e 0%, #3d2810 100%);
+            border: 2px solid #8b5a2b;
+            border-radius: 10px;
+            font-size: 16px;
+            color: #ffd700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .level-btn:hover:not(:disabled) {
+            background: linear-gradient(180deg, #7a5030 0%, #5c3d1e 100%);
+            border-color: #ffd700;
+        }
+
+        .level-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .level-btn.completed {
+            background: linear-gradient(180deg, #2d5a27 0%, #1a3d15 100%);
+            border-color: #4a9c3d;
+        }
+
+        .level-btn.current {
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255,215,0,0.5);
+        }
+
+        /* Settings */
+        .settings-group {
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .settings-label {
+            font-size: 14px;
+            color: #c9a959;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .settings-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .setting-btn {
+            flex: 1;
+            padding: 12px;
+            background: linear-gradient(180deg, #3d2810 0%, #2d1f15 100%);
+            border: 2px solid #5c3d1e;
+            border-radius: 10px;
+            color: #d4c4a8;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .setting-btn.active {
+            background: linear-gradient(180deg, #5c3d1e 0%, #3d2810 100%);
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+
+        /* Game Board */
+        #gameCanvas {
+            border: 4px solid #8b5a2b;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(139, 90, 43, 0.5);
+            touch-action: none;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 360px;
+            margin: 15px 0;
+            padding: 10px 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            border: 2px solid #5c3d1e;
+        }
+
+        .game-info-item {
+            text-align: center;
+        }
+
+        .game-info-value {
+            font-size: 20px;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .game-info-label {
+            font-size: 11px;
+            color: #c9a959;
+        }
+
+        /* Popup */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .popup.active {
+            display: flex;
+        }
+
+        .popup-content {
+            background: linear-gradient(180deg, #2d1b4e 0%, #1a0a2e 100%);
+            border: 4px solid #ffd700;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 300px;
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .popup-title {
+            font-size: 24px;
+            color: #ffd700;
+            margin-bottom: 15px;
+        }
+
+        .popup-text {
+            font-size: 14px;
+            color: #d4c4a8;
+            margin-bottom: 20px;
+        }
+
+        /* Decorative elements */
+        .decoration {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0.1;
+        }
+
+        /* Sound toggle */
+        .sound-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #5c3d1e;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <button class="header-btn" id="backBtn" style="display:none;">⬅️</button>
+        <h1>🍓 Летняя Сказка</h1>
+        <button class="header-btn" id="menuBtn">⚙️</button>
+    </div>
+
+    <!-- Main Menu Screen -->
+    <div class="screen active" id="mainMenu">
+        <div style="font-size: 60px; margin: 20px 0;">🏛️</div>
+        <div class="title">Древнерусская<br>Летняя Сказка</div>
+        <div class="subtitle">Собирай ягоды и грибы в три ряда!</div>
+        <button class="btn" id="playBtn">🍓 Играть</button>
+        <button class="btn btn-secondary" id="continueBtn" style="display:none;">Продолжить</button>
+        <button class="btn btn-secondary" id="settingsBtn">⚙️ Настройки</button>
+    </div>
+
+    <!-- Level Select Screen -->
+    <div class="screen" id="levelSelect">
+        <div class="title">Выбор Уровня</div>
+        <div class="levels-grid" id="levelsGrid"></div>
+        <button class="btn btn-secondary" id="backToMenu">⬅️ Назад</button>
+    </div>
+
+    <!-- Settings Screen -->
+    <div class="screen" id="settingsScreen">
+        <div class="title">⚙️ Настройки</div>
+
+        <div class="settings-group">
+            <label class="settings-label">🔊 Звук</label>
+            <div class="settings-row">
+                <button class="setting-btn active" data-setting="sound" data-value="on">Вкл</button>
+                <button class="setting-btn" data-setting="sound" data-value="off">Выкл</button>
+            </div>
+        </div>
+
+        <div class="settings-group">
+            <label class="settings-label">🖼️ Качество</label>
+            <div class="settings-row">
+                <button class="setting-btn active" data-setting="quality" data-value="high">Высокое</button>
+                <button class="setting-btn" data-setting="quality" data-value="low">Низкое</button>
+            </div>
+        </div>
+
+        <div class="settings-group">
+            <label class="settings-label">🎵 Музыка</label>
+            <div class="settings-row">
+                <button class="setting-btn active" data-setting="music" data-value="on">Вкл</button>
+                <button class="setting-btn" data-setting="music" data-value="off">Выкл</button>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button class="btn btn-secondary" id="resetProgress">🔄 Сбросить прогресс</button>
+        </div>
+
+        <button class="btn btn-secondary" id="settingsBack" style="margin-top: 20px;">⬅️ Назад</button>
+    </div>
+
+    <!-- Game Screen -->
+    <div class="screen" id="gameScreen">
+        <div class="game-info">
+            <div class="game-info-item">
+                <div class="game-info-value" id="levelDisplay">1</div>
+                <div class="game-info-label">Уровень</div>
+            </div>
+            <div class="game-info-item">
+                <div class="game-info-value" id="scoreDisplay">0</div>
+                <div class="game-info-label">Очки</div>
+            </div>
+            <div class="game-info-item">
+                <div class="game-info-value" id="movesDisplay">20</div>
+                <div class="game-info-label">Ходы</div>
+            </div>
+        </div>
+        <canvas id="gameCanvas" width="360" height="360"></canvas>
+        <div style="font-size: 12px; color: #c9a959; margin-top: 10px;" id="targetDisplay">Цель: 500 очков</div>
+    </div>
+
+    <!-- Win Popup -->
+    <div class="popup" id="winPopup">
+        <div class="popup-content">
+            <div style="font-size: 50px;">🎉</div>
+            <div class="popup-title">Победа!</div>
+            <div class="popup-text" id="winText">Ты прошёл уровень!</div>
+            <button class="btn" id="nextLevelBtn">Следующий уровень →</button>
+            <button class="btn btn-secondary" id="winMenuBtn" style="margin-top: 10px;">В меню</button>
+        </div>
+    </div>
+
+    <!-- Lose Popup -->
+    <div class="popup" id="losePopup">
+        <div class="popup-content">
+            <div style="font-size: 50px;">😢</div>
+            <div class="popup-title">Не хватило!</div>
+            <div class="popup-text">Попробуй ещё раз</div>
+            <button class="btn" id="retryBtn">🔄 Заново</button>
+            <button class="btn btn-secondary" id="loseMenuBtn" style="margin-top: 10px;">В меню</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/icons.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/levels.js"></script>
+    <script src="js/board.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
