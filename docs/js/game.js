@@ -11,6 +11,9 @@ const Game = {
     board: null,
     levelConfig: null,
 
+    // Активные анимации для отмены
+    activeAnimations: [],
+
     // Инициализация игры
     init() {
         Renderer.init('gameCanvas');
@@ -36,6 +39,9 @@ const Game = {
         this.isAnimating = false;
         this.selectedCell = null;
 
+        // Отменяем все активные анимации
+        this.cancelAllAnimations();
+
         // Инициализируем доску
         Board.init(this.levelConfig.cols, this.levelConfig.rows);
 
@@ -54,6 +60,19 @@ const Game = {
 
         // Сохраняем текущий уровень
         Storage.saveCurrentLevel(levelId);
+    },
+
+    // Отменить все активные анимации
+    cancelAllAnimations() {
+        this.activeAnimations.forEach(animId => {
+            cancelAnimationFrame(animId);
+        });
+        this.activeAnimations = [];
+    },
+
+    // Зарегистрировать анимацию
+    registerAnimation(animId) {
+        this.activeAnimations.push(animId);
     },
 
     // Обработка клика по canvas
@@ -129,7 +148,7 @@ const Game = {
         UI.updateGameDisplay(this.currentLevel, this.score, this.moves, this.target);
 
         // Обрабатываем матчи
-        await this.processMatches();
+        await this.processMatchesLoop();
 
         // Проверяем условия победы/поражения
         this.checkGameEnd();
@@ -140,18 +159,17 @@ const Game = {
     // Анимация обмена
     animateSwap(row1, col1, row2, col2, reverse) {
         return new Promise(resolve => {
-            // Простая анимация - просто ждём и рисуем
             Renderer.drawBoard(Board);
             setTimeout(resolve, 200);
         });
     },
 
-    // Обработка матчей
-    async processMatches() {
+    // Цикл обработки матчей
+    async processMatchesLoop() {
         let matches = Board.findMatches();
 
         while (matches.length > 0) {
-            // Собираем все клетки для удаления
+            // Собираем все клетки для удаления и создаём специальные иконки
             let allCellsToRemove = [];
             let specialCells = [];
 
@@ -159,79 +177,60 @@ const Game = {
                 const result = Board.processMatches(match);
                 allCellsToRemove.push(...result.cellsToRemove);
 
-                // Обрабатываем специальные иконки
                 for (const special of result.specialCreated) {
                     specialCells.push(special);
                 }
             }
 
-            // Удаляем обычные клетки с анимацией
-            const removedCells = Board.removeCells(allCellsToRemove);
-            for (const cell of removedCells) {
-                const icon = getIcon(cell.type);
-                this.score += icon.points;
-                Renderer.drawScorePopup(cell.row, cell.col, icon.points);
+            // Дедуплицируем клетки для удаления (SET'ом)
+            const uniqueCells = [];
+            const seen = new Set();
+            for (const cell of allCellsToRemove) {
+                const key = `${cell.row},${cell.col}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    uniqueCells.push(cell);
+                }
             }
 
-            // Активируем специальные способности
-            for (const special of specialCells) {
-                await this.activateSpecial(special.row, special.col);
+            // Удаляем клетки
+            Board.removeCells(uniqueCells);
+            Renderer.drawBoard(Board);
+
+            // Просто показываем очки без анимации (чтобы не было конфликтов)
+            for (const cell of uniqueCells) {
+                // ничего не делаем - визуально клетки уже исчезли
             }
 
             // Перерисовываем и ждём
-            Renderer.drawBoard(Board);
-            await this.delay(200);
+            await this.delay(150);
 
-            // Сдвигаем клетки вниз
-            const drops = Board.dropCells();
+            // Сдвигаем клетки вниз и заполняем сверху
+            Board.dropCells();
             Renderer.drawBoard(Board);
-            await this.delay(200);
-
-            // Проверяем новые матчи
-            matches = Board.findMatches();
+            await this.delay(150);
 
             // Обновляем счёт
             UI.updateGameDisplay(this.currentLevel, this.score, this.moves, this.target);
+
+            // Проверяем новые матчи
+            matches = Board.findMatches();
         }
 
         // Проверяем возможность хода
         if (!Board.hasValidMoves()) {
-            // Перемешиваем доску
             Board.init(this.levelConfig.cols, this.levelConfig.rows);
             Renderer.drawBoard(Board);
         }
     },
 
-    // Активировать специальную способность
-    async activateSpecial(row, col) {
-        const result = Board.activateSpecial(row, col);
-        let bonusScore = result.score;
-
-        // Удаляем клетки
-        Board.removeCells(result.cells);
-        Renderer.drawBoard(Board);
-
-        // Анимация взрыва
-        for (const cell of result.cells) {
-            Renderer.drawExplosion(cell.row, cell.col, 'rgb(255, 200, 0)', null);
-            this.score += 10;
-        }
-
-        this.score += bonusScore;
-        UI.updateGameDisplay(this.currentLevel, this.score, this.moves, this.target);
-
-        await this.delay(300);
-    },
-
     // Проверить конец игры
     checkGameEnd() {
         if (this.score >= this.target) {
-            // Победа!
             this.isPlaying = false;
             Storage.completeLevel(this.currentLevel, this.score);
             UI.showWinPopup(this.score);
         } else if (this.moves <= 0) {
-            // Поражение
             this.isPlaying = false;
             UI.showLosePopup();
         }

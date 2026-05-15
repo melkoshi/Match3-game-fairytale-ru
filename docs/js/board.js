@@ -53,7 +53,7 @@ const Board = {
     // Обработать матчи и создать специальные иконки
     processMatches(matches) {
         const specialCreated = [];
-        const cellsToRemove = new Set();
+        const cellsToRemove = [];
 
         for (const match of matches) {
             // Определяем какую специальную иконку создать
@@ -79,29 +79,19 @@ const Board = {
                     direction: dir
                 };
                 specialCreated.push({ row: center.row, col: center.col, type: 'ROCKET' });
-            } else {
-                // 3 обычные - просто удаляем
-                for (const cell of match.cells) {
-                    cellsToRemove.add(`${cell.row},${cell.col}`);
-                }
             }
 
-            // Для матчей больше 3 добавляем оставшиеся клетки в удаление
-            if (match.length > 3) {
-                for (const cell of match.cells) {
-                    const key = `${cell.row},${cell.col}`;
-                    if (!specialCreated.some(s => s.row === cell.row && s.col === cell.col)) {
-                        cellsToRemove.add(key);
-                    }
+            // Добавляем ВСЕ клетки матча в удаление (кроме центра специальных)
+            for (const cell of match.cells) {
+                const isSpecial = specialCreated.some(s => s.row === cell.row && s.col === cell.col);
+                if (!isSpecial) {
+                    cellsToRemove.push(cell);
                 }
             }
         }
 
         return {
-            cellsToRemove: Array.from(cellsToRemove).map(key => {
-                const [row, col] = key.split(',').map(Number);
-                return { row, col };
-            }),
+            cellsToRemove,
             specialCreated
         };
     },
