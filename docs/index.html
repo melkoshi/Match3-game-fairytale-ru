@@ -319,6 +319,74 @@ const Renderer = {
     }
 };
 
+// ========== SOUND SYSTEM ==========
+const Sound = {
+    enabled: true,
+    ctx: null,
+    
+    init() {
+        try {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.log('Audio not supported');
+        }
+    },
+    
+    play(type) {
+        if (!this.enabled || !this.ctx) return;
+        
+        // Resume context if suspended
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+        
+        const now = this.ctx.currentTime;
+        
+        if (type === 'select') {
+            this.playTone(440, 0.1, 'sine', 0.3);
+        } else if (type === 'match') {
+            this.playTone(523, 0.15, 'sine', 0.4);
+            setTimeout(() => this.playTone(659, 0.15, 'sine', 0.3), 100);
+        } else if (type === 'special') {
+            this.playTone(392, 0.2, 'square', 0.3);
+            setTimeout(() => this.playTone(523, 0.2, 'square', 0.3), 150);
+            setTimeout(() => this.playTone(784, 0.3, 'square', 0.4), 300);
+        } else if (type === 'win') {
+            this.playTone(523, 0.15, 'sine', 0.5);
+            setTimeout(() => this.playTone(659, 0.15, 'sine', 0.5), 100);
+            setTimeout(() => this.playTone(784, 0.15, 'sine', 0.5), 200);
+            setTimeout(() => this.playTone(1047, 0.4, 'sine', 0.6), 300);
+        } else if (type === 'lose') {
+            this.playTone(392, 0.3, 'sine', 0.4);
+            setTimeout(() => this.playTone(330, 0.4, 'sine', 0.3), 200);
+        } else if (type === 'swap') {
+            this.playTone(330, 0.08, 'triangle', 0.3);
+        }
+    },
+    
+    playTone(freq, duration, type, volume) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        
+        osc.type = type;
+        osc.frequency.value = freq;
+        
+        gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+    },
+    
+    toggle() {
+        this.enabled = !this.enabled;
+        return this.enabled;
+    }
+};
+
 // ========== GAME LOGIC ==========
 function randomIcon() {
     return ICON_TYPES[Math.floor(Math.random() * ICON_TYPES.length)];
@@ -615,6 +683,7 @@ function dropAndFill() {
 async function processMatches() {
     let loopCount = 0;
     const maxLoops = 50;
+    let hasMatchSoundPlayed = false;
     
     while (loopCount < maxLoops) {
         loopCount++;
@@ -624,7 +693,14 @@ async function processMatches() {
         
         if (matches.length === 0 && squares.length === 0) break;
         
+        if (!hasMatchSoundPlayed) {
+            Sound.play('match');
+            hasMatchSoundPlayed = true;
+        }
+        
         const hadSpecials = removeMatches(matches, squares);
+        if (hadSpecials) Sound.play('special');
+        
         Renderer.drawBoard();
         await delay(200);
         
@@ -680,6 +756,7 @@ async function tryMove(r1, c1, r2, c2) {
     game.board[r2][c2] = temp;
     
     Renderer.drawBoard();
+    Sound.play('swap');
     await delay(150);
     
     const matches = findMatches();
@@ -700,9 +777,11 @@ async function tryMove(r1, c1, r2, c2) {
     updateUI();
     
     if (game.score >= game.target) {
+        Sound.play('win');
         document.getElementById('winText').textContent = `Очки: ${game.score}`;
         document.getElementById('winPopup').classList.add('active');
     } else if (game.movesLeft <= 0) {
+        Sound.play('lose');
         document.getElementById('losePopup').classList.add('active');
     } else {
         game.isPlaying = true;
@@ -850,6 +929,11 @@ function initUI() {
         }
     });
     
+    document.getElementById('soundToggle')?.addEventListener('click', () => {
+        const enabled = Sound.toggle();
+        document.getElementById('soundToggle').textContent = enabled ? '🔊 Вкл' : '🔇 Выкл';
+    });
+    
     // Settings buttons
     document.querySelectorAll('[data-setting]').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -901,6 +985,7 @@ function initUI() {
         
         if (!game.selected) {
             game.selected = { row, col };
+            Sound.play('select');
             Renderer.drawBoard();
             Renderer.drawSelection(row, col);
         } else {
@@ -924,6 +1009,7 @@ function initUI() {
 // Init
 document.addEventListener('DOMContentLoaded', () => {
     Renderer.init();
+    Sound.init();
     initUI();
     showScreen('mainMenu');
 });
