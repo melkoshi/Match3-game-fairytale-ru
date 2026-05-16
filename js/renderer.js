@@ -142,13 +142,23 @@ const Renderer = {
         }
     },
 
-    // Нарисовать иконку (картинка)
+    // Нарисовать иконку (картинка с обводкой)
     drawIcon(type, x, y, size) {
         const icon = getIcon(type);
         const img = new Image();
         img.src = icon.image;
-        const padding = size * 0.1;
-        this.ctx.drawImage(img, x + padding, y + padding, size - padding * 2, size - padding * 2);
+        const padding = size * 0.08;
+        const imgSize = size - padding * 2;
+        
+        // Рисуем обводку (деревянный цвет)
+        this.ctx.strokeStyle = '#5c3d1e';
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.roundRect(x + padding, y + padding, imgSize, imgSize, 4);
+        this.ctx.stroke();
+        
+        // Рисуем картинку
+        this.ctx.drawImage(img, x + padding, y + padding, imgSize, imgSize);
     },
 
     // Эффект заморозки
