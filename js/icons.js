@@ -2,19 +2,19 @@
 
 const ICONS = {
     // Основные иконки (обычные)
-    BERRY: { emoji: '🍓', name: 'Ягода', color: '#ff6b6b', points: 10 },
-    MUSHROOM: { emoji: '🍄', name: 'Гриб', color: '#c9a959', points: 10 },
-    FLOWER: { emoji: '🌸', name: 'Цветок', color: '#ff9ff3', points: 10 },
-    MATRYOSHKA: { emoji: '🪆', name: 'Матрёшка', color: '#ee5a5a', points: 10 },
-    BALALAIKA: { emoji: '🎸', name: 'Балалайка', color: '#8b5a2b', points: 10 },
-    KARAWAY: { emoji: '🍞', name: 'Каравай', color: '#f4a460', points: 10 },
-    BEAR: { emoji: '🐻', name: 'Мишка', color: '#8b4513', points: 10 },
-    FOX: { emoji: '🦊', name: 'Лиса', color: '#ff7f50', points: 10 },
+    BERRY: { emoji: '🍓', image: 'media/icons/berry.png', name: 'Ягода', color: '#ff6b6b', points: 10 },
+    MUSHROOM: { emoji: '🍄', image: 'media/icons/mushroom.png', name: 'Гриб', color: '#c9a959', points: 10 },
+    FLOWER: { emoji: '🌸', image: 'media/icons/flower.png', name: 'Цветок', color: '#ff9ff3', points: 10 },
+    MATRYOSHKA: { emoji: '🪆', image: 'media/icons/matryoshka.png', name: 'Матрёшка', color: '#ee5a5a', points: 10 },
+    BALALAIKA: { emoji: '🎸', image: 'media/icons/balalaika.png', name: 'Балалайка', color: '#8b5a2b', points: 10 },
+    KARAWAY: { emoji: '🍞', image: 'media/icons/karawai.png', name: 'Каравай', color: '#f4a460', points: 10 },
+    BEAR: { emoji: '🐻', image: 'media/icons/bear.png', name: 'Мишка', color: '#8b4513', points: 10 },
+    FOX: { emoji: '🦊', image: 'media/icons/fox.png', name: 'Лиса', color: '#ff7f50', points: 10 },
 
     // Специальные иконки (создаются при комбинациях)
-    ROCKET: { emoji: '🚀', name: 'Ракета', color: '#ffd700', points: 50, special: 'rocket' },
-    BOMB: { emoji: '💣', name: 'Бомба', color: '#ff4500', points: 75, special: 'bomb' },
-    DIAGONAL: { emoji: '✨', name: 'Диа-бомба', color: '#ff69b4', points: 100, special: 'star' }
+    ROCKET: { emoji: '🚀', image: 'media/icons/rocket.png', name: 'Ракета', color: '#ffd700', points: 50, special: 'rocket' },
+    BOMB: { emoji: '💣', image: 'media/icons/bomb.png', name: 'Бомба', color: '#ff4500', points: 75, special: 'bomb' },
+    DIAGONAL: { emoji: '✨', image: 'media/icons/diagonal.png', name: 'Диа-бомба', color: '#ff69b4', points: 100, special: 'star' }
 };
 
 // Типы иконок для обычной игры (без специальных)
@@ -46,20 +46,7 @@ function getEmoji(type) {
     return getIcon(type).emoji;
 }
 
-// Нарисовать иконку на canvas
-function drawIcon(ctx, type, x, y, size) {
-    const icon = getIcon(type);
-    const fontSize = size * 0.7;
-
-    ctx.save();
-    ctx.font = `${fontSize}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(icon.emoji, x + size / 2, y + size / 2);
-    ctx.restore();
-}
-
-// Экспорт для использования в других файлах
+// Экспорт
 window.ICONS = ICONS;
 window.NORMAL_ICONS = NORMAL_ICONS;
 window.getIcon = getIcon;
@@ -67,4 +54,3 @@ window.getRandomIcon = getRandomIcon;
 window.isSpecialIcon = isSpecialIcon;
 window.getSpecialType = getSpecialType;
 window.getEmoji = getEmoji;
-window.drawIcon = drawIcon;

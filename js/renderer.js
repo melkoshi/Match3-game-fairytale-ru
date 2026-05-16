@@ -116,17 +116,13 @@ const Renderer = {
         }
     },
 
-    // Нарисовать иконку
+    // Нарисовать иконку (картинка)
     drawIcon(type, x, y, size) {
         const icon = getIcon(type);
-        const fontSize = size * 0.65;
-
-        this.ctx.save();
-        this.ctx.font = `${fontSize}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`;
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'middle';
-        this.ctx.fillText(icon.emoji, x + size / 2, y + size / 2);
-        this.ctx.restore();
+        const img = new Image();
+        img.src = icon.image;
+        const padding = size * 0.1;
+        this.ctx.drawImage(img, x + padding, y + padding, size - padding * 2, size - padding * 2);
     },
 
     // Эффект заморозки
