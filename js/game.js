@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1605260550';
-const BUILD_DATE = '2026-05-16 05:50';
+const GAME_VERSION = '1.1605261025';
+const BUILD_DATE = '2026-05-16 10:25';
 
 window.Game = {
     level: null,
@@ -25,6 +25,12 @@ window.Game = {
         const versionEl = document.getElementById('versionDisplay');
         if (versionEl) {
             versionEl.textContent = `Версия ${GAME_VERSION} (${BUILD_DATE})`;
+        }
+    },
+    
+    vibrate(pattern) {
+        if ('vibrate' in navigator) {
+            navigator.vibrate(pattern);
         }
     },
     
@@ -123,6 +129,7 @@ window.Game = {
             this.render();
             window.Renderer.drawSelection(row, col);
             window.Sound.play('select');
+            this.vibrate(10);
         } else {
             const dr = Math.abs(row - this.selected.row);
             const dc = Math.abs(col - this.selected.col);
@@ -169,6 +176,7 @@ window.Game = {
         this.movesLeft--;
         this.updateUI();
         window.Sound.play('match');
+        this.vibrate([30, 20, 30]);
         
         // Если есть специальная иконка - активируем её
         const specialsToActivate = [];
@@ -180,6 +188,7 @@ window.Game = {
         }
         if (specialsToActivate.length > 0) {
             window.Sound.play('special');
+            this.vibrate([50, 30, 50, 30, 80]);
             await this.activateSpecials(specialsToActivate);
         }
         
@@ -193,11 +202,13 @@ window.Game = {
         // Проверяем конец игры
         if (this.score >= this.target) {
             window.Sound.play('win');
+            this.vibrate([100, 50, 100, 50, 200]);
             // Сохраняем прогресс
             window.Storage.completeLevel(this.currentLevel);
             window.UI.showWinPopup(this.score);
         } else if (this.movesLeft <= 0) {
             window.Sound.play('lose');
+            this.vibrate([200, 100, 200]);
             window.UI.showLosePopup();
         }
     },
@@ -346,6 +357,7 @@ window.Game = {
         
         if (specialsToActivate.length > 0) {
             window.Sound.play('special');
+            this.vibrate([50, 30, 50, 30, 80]);
             await this.activateSpecials(specialsToActivate);
         }
         
@@ -549,6 +561,7 @@ window.Game = {
             shuffleMsg.classList.add('active');
         }
         window.Sound.play('shuffle');
+        this.vibrate([30, 20, 30, 20, 30]);
         
         await this.delay(500);
         
