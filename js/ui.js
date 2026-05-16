@@ -200,7 +200,6 @@ const UI = {
                 this.showScreen('mainMenu');
                 break;
             case 'gameScreen':
-                Game.pause();
                 if (confirm('Вернуться в меню? Прогресс уровня не сохранится.')) {
                     this.showScreen('mainMenu');
                 }

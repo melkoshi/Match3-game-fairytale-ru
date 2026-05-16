@@ -29,6 +29,7 @@ window.Game = {
     
     startLevel(levelId) {
         this.level = window.getLevel(levelId);
+        this.currentLevel = levelId;
         this.score = 0;
         this.movesLeft = this.level.moves;
         this.target = this.level.target;
