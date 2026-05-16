@@ -7,7 +7,7 @@ const ICONS = {
     FLOWER: { emoji: '🌸', image: 'media/icons/flower.png', name: 'Цветок', color: '#ff9ff3', points: 10 },
     MATRYOSHKA: { emoji: '🪆', image: 'media/icons/matryoshka.png', name: 'Матрёшка', color: '#ee5a5a', points: 10 },
     BALALAIKA: { emoji: '🎸', image: 'media/icons/balalaika.png', name: 'Балалайка', color: '#8b5a2b', points: 10 },
-    KARAWAY: { emoji: '🍞', image: 'media/icons/karawai.png', name: 'Каравай', color: '#f4a460', points: 10 },
+    KARAWAY: { emoji: '🦎', image: 'media/icons/karawai.png', name: 'Ящер', color: '#7cfc00', points: 10 },
     BEAR: { emoji: '🐻', image: 'media/icons/bear.png', name: 'Мишка', color: '#8b4513', points: 10 },
     FOX: { emoji: '🦊', image: 'media/icons/fox.png', name: 'Лиса', color: '#ff7f50', points: 10 },
 
