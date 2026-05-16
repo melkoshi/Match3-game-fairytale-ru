@@ -18,6 +18,7 @@ window.Game = {
         window.initLevels();
         window.UI.init();
         window.Sound.init();
+        window.Music.init();
         
         document.getElementById('gameCanvas').addEventListener('click', (e) => this.onClick(e));
         
@@ -54,6 +55,9 @@ window.Game = {
         window.Renderer.setBoardSize(this.level.cols, this.level.rows, size);
         this.render();
         this.updateUI();
+        
+        // Запускаем музыку при начале игры
+        window.Music.play();
     },
     
     createBoard(cols, rows) {

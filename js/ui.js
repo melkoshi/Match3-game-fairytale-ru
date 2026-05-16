@@ -142,6 +142,7 @@ const UI = {
 
         // Музыка
         this.updateSettingButtons('music', settings.music ? 'on' : 'off');
+        window.Music.setEnabled(settings.music);
     },
 
     // Обновить кнопки настроек
@@ -170,6 +171,8 @@ const UI = {
             this.applyQualitySetting(value);
         } else if (setting === 'sound') {
             window.Sound.setEnabled(actualValue);
+        } else if (setting === 'music') {
+            window.Music.setEnabled(actualValue);
         }
     },
 
