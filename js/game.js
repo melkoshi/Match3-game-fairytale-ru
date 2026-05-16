@@ -143,8 +143,12 @@ window.Game = {
         
         // Меняем местами
         const temp = this.board[r1][c1];
+        const sourceSpecial = temp && isSpecialIcon(temp.type) ? temp.type : null;
         this.board[r1][c1] = this.board[r2][c2];
         this.board[r2][c2] = temp;
+        
+        // Проверяем есть ли специальная иконка на месте назначения
+        const destSpecial = this.board[r2][c2] && isSpecialIcon(this.board[r2][c2].type) ? this.board[r2][c2].type : null;
         
         this.render();
         await this.delay(150);
@@ -153,7 +157,8 @@ window.Game = {
         const matches = this.findMatches();
         const squares = this.findSquares();
         
-        if (matches.length === 0 && squares.length === 0) {
+        // Если нет матчей и нет активации специальных иконок - возвращаем обратно
+        if (matches.length === 0 && squares.length === 0 && !sourceSpecial && !destSpecial) {
             // Возвращаем обратно
             this.board[r2][c2] = this.board[r1][c1];
             this.board[r1][c1] = temp;
@@ -165,6 +170,19 @@ window.Game = {
         this.movesLeft--;
         this.updateUI();
         window.Sound.play('match');
+        
+        // Если есть специальная иконка - активируем её
+        const specialsToActivate = [];
+        if (sourceSpecial) {
+            specialsToActivate.push({ row: r1, col: c1, type: sourceSpecial });
+        }
+        if (destSpecial) {
+            specialsToActivate.push({ row: r2, col: c2, type: destSpecial });
+        }
+        if (specialsToActivate.length > 0) {
+            window.Sound.play('special');
+            await this.activateSpecials(specialsToActivate);
+        }
         
         await this.handleMatches(matches, squares);
         
@@ -348,8 +366,10 @@ window.Game = {
     async activateSpecials(specials) {
         const allToRemove = new Set();
         
-        for (const { row, col } of specials) {
-            const type = this.board[row][col].type;
+        for (const special of specials) {
+            const row = special.row;
+            const col = special.col;
+            const type = special.type || (this.board[row][col] && this.board[row][col].type);
             const rows = this.level.rows;
             const cols = this.level.cols;
             
