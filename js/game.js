@@ -1,9 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
-// Версия игры - автоматически генерируется при сборке
-const now = new Date();
-const GAME_VERSION = `1.${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
-const BUILD_DATE = now.toISOString().replace('T', ' ').substring(0, 19);
+// Версия игры - менять вручную при каждом изменении!
+const GAME_VERSION = '1.1605260516';
+const BUILD_DATE = '2026-05-16 05:16';
 
 window.Game = {
     level: null,
