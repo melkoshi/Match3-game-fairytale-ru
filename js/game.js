@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1605261215';
-const BUILD_DATE = '2026-05-16 12:15';
+const GAME_VERSION = '1.1705260100';
+const BUILD_DATE = '2026-05-17 01:00';
 
 window.Game = {
     level: null,
@@ -13,6 +13,10 @@ window.Game = {
     board: null,
     
     init() {
+        // Скрываем главное меню пока грузимся
+        const mainMenu = document.getElementById('mainMenu');
+        if (mainMenu) mainMenu.classList.remove('active');
+        
         window.Renderer.init('gameCanvas');
         window.initLevels();
         window.UI.init();
@@ -26,6 +30,36 @@ window.Game = {
         if (versionEl) {
             versionEl.textContent = `Версия ${GAME_VERSION} (${BUILD_DATE})`;
         }
+        
+        // Загружаем иконки и показываем прогресс
+        this.updateLoadingProgress(10, 'Загрузка иконок...');
+        loadIcons(() => {
+            this.updateLoadingProgress(80, 'Загрузка звуков...');
+            setTimeout(() => {
+                this.updateLoadingProgress(100, 'Готово!');
+                setTimeout(() => {
+                    this.hideLoadingScreen();
+                    this.showMainMenu();
+                }, 500);
+            }, 300);
+        });
+    },
+    
+    updateLoadingProgress(percent, text) {
+        const bar = document.getElementById('loadingBar');
+        const txt = document.getElementById('loadingText');
+        if (bar) bar.style.width = percent + '%';
+        if (txt) txt.textContent = text;
+    },
+    
+    hideLoadingScreen() {
+        const loading = document.getElementById('loadingScreen');
+        if (loading) loading.classList.add('hidden');
+    },
+    
+    showMainMenu() {
+        const mainMenu = document.getElementById('mainMenu');
+        if (mainMenu) mainMenu.classList.add('active');
     },
     
     vibrate(pattern) {

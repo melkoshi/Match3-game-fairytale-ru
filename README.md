@@ -1,61 +1,42 @@
-# 🍓 Древнерусская Летняя Сказка - Match-3 Game
+# 📄 Match-3 Game - Древнерусская Летняя Сказка
 
-Telegram Web App игра в стиле Match-3 с древнерусской тематикой.
+A beautiful ancient Russian folk tale themed Match-3 puzzle game.
 
-## Структура проекта
+## 🎮 Game Features
 
-```
-match3-game/
-├── bot/                    # Telegram бот (Python)
-│   ├── bot.py             # Основной код бота
-│   └── config.py          # Конфигурация
-├── webapp/                 # Telegram Web App
-│   ├── index.html         # Главная страница
-│   ├── js/
-│   │   ├── game.js         # Игровая логика
-│   │   ├── board.js        # Доска и матчи
-│   │   ├── renderer.js     # Отрисовка Canvas
-│   │   ├── levels.js        # Генерация уровней
-│   │   ├── ui.js           # UI (меню, настройки)
-│   │   └── storage.js      # Сохранение прогресса
-│   └── assets/
-│       └── icons.js        # Иконки (эмодзи)
-├── bot_token.txt           # Токен бота (нужно создать)
-└── README.md
-```
+- 15 levels with progressive difficulty
+- Special icons: Rockets, Bombs, Diagonal bombs
+- Russian folk aesthetic
+- Wood-textured game board
+- Sound effects and background music
+- Haptic feedback (vibration)
+- Progress saving
 
-## Запуск
+## 🛠️ Tech Stack
 
-1. Установить Python зависимости:
-   ```
-   pip install python-telegram-bot
-   ```
+- Pure HTML5/CSS3/JavaScript
+- Canvas for game rendering
+- Web Audio API for sounds
+- LocalStorage for progress saving
+- Telegram WebApp support
 
-2. Создать bot_token.txt с токеном от @BotFather
+## 🎨 Icons & Assets
 
-3. Запустить бота:
-   ```
-   cd bot && python bot.py
-   ```
+- Custom PNG icons with transparent backgrounds (64x64 / 128x128)
+- Wood texture board design
+- Traditional Russian folk style
 
-4. Открыть Web App через бота
+## 📱 Platform Support
 
-## Механики
+- Desktop browsers
+- Mobile browsers
+- Telegram Mini App
 
-- **3 в ряд** — обычное совпадение (+10 очков)
-- **4 в ряд** — создаёт ракету 🚀 (сбивает строку/столбец)
-- **5 в ряд** — создаёт бомбу 💣 (взрывает область 3x3)
-- **Комбо** — более 3 совпадений за один ход дают бонус очков
-- **Замороженные клетки** — нужно 2 совпадения чтобы разбить
-- **Бомбы и ракеты** — комбинирование даёт мега-эффекты
+## 🚀 Deploy
 
-## Древнерусские иконки
+Game is deployed via GitHub Pages:
+https://melkoshi.github.io/Match3-game-fairytale-ru/
 
-🍓 Ягоды | 🍄 Грибы | 🌸 Цветы | 🪆 Матрёшка
-🎸 Балалайка | 🍞 Каравай | 🐻 Мишка | 🦊 Лисица
+## 🎵 Audio Credits
 
-## Уровни
-
-- 15 уровней с прогрессирующей сложностью
-- Рандомная генерация доски с гарантированными матчами
-- Цели: набрать X очков за Y ходов
+Background music: Russian folk instrumental (balalaika + flute)
