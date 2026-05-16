@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1605261040';
-const BUILD_DATE = '2026-05-16 10:40';
+const GAME_VERSION = '1.1605261055';
+const BUILD_DATE = '2026-05-16 10:55';
 
 window.Game = {
     level: null,
@@ -29,24 +29,21 @@ window.Game = {
     },
     
     vibrate(pattern) {
-        // Try multiple vibration APIs for different environments
-        const vibrateFn = navigator.vibrate || 
-                          (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback);
-        
-        if (vibrateFn) {
-            if (typeof vibrateFn === 'function') {
-                vibrateFn(pattern);
-            } else {
+        try {
+            // Telegram WebApp HapticFeedback
+            if (window.Telegram && window.Telegram.WebApp) {
+                const haptic = window.Telegram.WebApp.HapticFeedback;
+                if (haptic) {
+                    haptic.impactOccurred('medium');
+                    return;
+                }
+            }
+            // Standard navigator.vibrate API
+            if ('vibrate' in navigator) {
                 navigator.vibrate(pattern);
             }
-            return;
-        }
-        
-        // Fallback for iOS Telegram
-        if (window.Telegram && window.Telegram.WebApp) {
-            try {
-                window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-            } catch(e) {}
+        } catch (e) {
+            // Silently ignore vibration errors
         }
     },
     
@@ -103,14 +100,16 @@ window.Game = {
         // Убираем 3 в ряд
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols - 2; c++) {
-                if (board[r][c].type === board[r][c+1].type && board[r][c].type === board[r][c+2].type) {
+                if (board[r] && board[r][c] && board[r][c+1] && board[r][c+2] &&
+                    board[r][c].type === board[r][c+1].type && board[r][c].type === board[r][c+2].type) {
                     board[r][c+2].type = this.randomCell();
                 }
             }
         }
         for (let c = 0; c < cols; c++) {
             for (let r = 0; r < rows - 2; r++) {
-                if (board[r][c].type === board[r+1][c].type && board[r][c].type === board[r+2][c].type) {
+                if (board[r] && board[r][c] && board[r+1] && board[r+1][c] && board[r+2] && board[r+2][c] &&
+                    board[r][c].type === board[r+1][c].type && board[r][c].type === board[r+2][c].type) {
                     board[r+2][c].type = this.randomCell();
                 }
             }
@@ -118,6 +117,7 @@ window.Game = {
         // Убираем квадраты 2x2
         for (let r = 0; r < rows - 1; r++) {
             for (let c = 0; c < cols - 1; c++) {
+                if (!board[r] || !board[r][c] || !board[r][c+1] || !board[r+1] || !board[r+1][c] || !board[r+1][c+1]) continue;
                 const type = board[r][c].type;
                 if (type === board[r][c+1].type && type === board[r+1][c].type && type === board[r+1][c+1].type) {
                     board[r][c+1].type = this.randomCell();
@@ -281,6 +281,8 @@ window.Game = {
         
         for (let r = 0; r < rows - 1; r++) {
             for (let c = 0; c < cols - 1; c++) {
+                if (!this.board[r] || !this.board[r][c] || !this.board[r][c+1] || 
+                    !this.board[r+1] || !this.board[r+1][c] || !this.board[r+1][c+1]) continue;
                 const type = this.board[r][c].type;
                 if (type && !isSpecialIcon(type) &&
                     this.board[r][c+1].type === type &&
