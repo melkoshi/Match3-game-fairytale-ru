@@ -13,24 +13,36 @@ window.Game = {
     board: null,
     
     init() {
-        window.Renderer.init('gameCanvas');
-        window.initLevels();
-        window.UI.init();
-        window.Sound.init();
-        window.Music.init();
-        
-        document.getElementById('gameCanvas').addEventListener('click', (e) => this.onClick(e));
-        
-        // Показываем версию сразу
-        const versionEl = document.getElementById('versionDisplay');
-        if (versionEl) {
-            versionEl.textContent = `Версия ${GAME_VERSION} (${BUILD_DATE})`;
+        console.log('Game.init starting...');
+        try {
+            window.Renderer.init('gameCanvas');
+            console.log('Renderer inited');
+            window.initLevels();
+            console.log('Levels inited');
+            window.UI.init();
+            console.log('UI inited');
+            window.Sound.init();
+            window.Music.init();
+            
+            document.getElementById('gameCanvas').addEventListener('click', (e) => this.onClick(e));
+            
+            // Показываем версию сразу
+            const versionEl = document.getElementById('versionDisplay');
+            console.log('versionDisplay element:', versionEl);
+            if (versionEl) {
+                versionEl.textContent = `Версия ${GAME_VERSION} (${BUILD_DATE})`;
+                console.log('Version set');
+            }
+            
+            // Предзагружаем иконки в фоне
+            loadIcons(() => {
+                console.log('Icons loaded callback');
+                window.Renderer.redrawBoard();
+            });
+            console.log('Game.init completed');
+        } catch (e) {
+            console.error('Game.init error:', e);
         }
-        
-        // Предзагружаем иконки в фоне
-        loadIcons(() => {
-            window.Renderer.redrawBoard();
-        });
     },
     
     vibrate(pattern) {
