@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1605261240';
-const BUILD_DATE = '2026-05-16 12:40';
+const GAME_VERSION = '1.1605261410';
+const BUILD_DATE = '2026-05-16 14:10';
 
 window.Game = {
     level: null,
@@ -13,21 +13,24 @@ window.Game = {
     board: null,
     
     init() {
-        // Загружаем иконки первыми, потом инициализируем игру
+        // Инициализируем базовые вещи сразу
+        window.Renderer.init('gameCanvas');
+        window.initLevels();
+        window.UI.init();
+        window.Sound.init();
+        window.Music.init();
+        
+        document.getElementById('gameCanvas').addEventListener('click', (e) => this.onClick(e));
+        
+        // Показываем версию сразу
+        const versionEl = document.getElementById('versionDisplay');
+        if (versionEl) {
+            versionEl.textContent = `Версия ${GAME_VERSION} (${BUILD_DATE})`;
+        }
+        
+        // Загружаем иконки в фоне (не блокируем UI)
         loadIcons(() => {
-            window.Renderer.init('gameCanvas');
-            window.initLevels();
-            window.UI.init();
-            window.Sound.init();
-            window.Music.init();
-            
-            document.getElementById('gameCanvas').addEventListener('click', (e) => this.onClick(e));
-            
-            // Показываем версию на главном экране
-            const versionEl = document.getElementById('versionDisplay');
-            if (versionEl) {
-                versionEl.textContent = `Версия ${GAME_VERSION} (${BUILD_DATE})`;
-            }
+            console.log('Icons loaded');
         });
     },
     

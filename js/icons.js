@@ -27,6 +27,17 @@ function loadIcons(callback) {
     let loaded = 0;
     const total = Object.keys(ICONS).length;
     
+    // Если нет что загружать - сразу вызываем callback
+    if (total === 0) {
+        if (callback) callback();
+        return;
+    }
+    
+    // Таймаут на случай если изображения не загружаются
+    setTimeout(() => {
+        if (callback) callback();
+    }, 3000);
+    
     for (const type in ICONS) {
         const img = new Image();
         img.src = ICONS[type].image;
