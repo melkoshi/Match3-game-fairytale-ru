@@ -30,30 +30,32 @@ window.Game = {
     
     vibrate(pattern) {
         try {
-            // Telegram WebApp HapticFeedback - use every time we can
-            if (window.Telegram && window.Telegram.WebApp) {
+            // Try Telegram WebApp HapticFeedback first (works in Telegram)
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
                 const haptic = window.Telegram.WebApp.HapticFeedback;
-                if (haptic && haptic.impactOccurred) {
+                if (haptic.impactOccurred) {
                     haptic.impactOccurred('medium');
                     return;
                 }
-                if (haptic && haptic.selectionOccurred) {
-                    haptic.selectionOccurred();
+                if (haptic.selectionChanged) {
+                    haptic.selectionChanged();
                     return;
                 }
             }
-            // iOS Safari and other browsers - use navigator.vibrate
-            if ('vibrate' in navigator) {
+        } catch (e) {}
+        
+        // Try standard vibration API
+        if ('vibrate' in navigator) {
+            try {
                 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-                if (isIOS && typeof pattern !== 'number') {
-                    // iOS only supports single number, use first value or 50ms
-                    navigator.vibrate(Array.isArray(pattern) ? pattern[0] || 50 : 50);
+                if (isIOS) {
+                    // iOS Safari only supports single number
+                    const ms = typeof pattern === 'number' ? pattern : (Array.isArray(pattern) ? pattern[0] : 50);
+                    navigator.vibrate(ms);
                 } else {
                     navigator.vibrate(pattern);
                 }
-            }
-        } catch (e) {
-            // Silently ignore vibration errors
+            } catch (e) {}
         }
     },
     
