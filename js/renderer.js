@@ -31,13 +31,39 @@ const Renderer = {
     drawBoard(board) {
         this.clear();
 
-        // Рисуем фон доски
-        this.ctx.fillStyle = 'rgba(45, 27, 78, 0.8)';
-        this.ctx.strokeStyle = '#8b5a2b';
-        this.ctx.lineWidth = 3;
+        // Рисуем деревянную текстуру доски
+        this.drawWoodTexture();
 
-        const boardWidth = this.cellSize * board.cols;
-        const boardHeight = this.cellSize * board.rows;
+        // Рисуем клетки
+        for (let row = 0; row < board.rows; row++) {
+            for (let col = 0; col < board.cols; col++) {
+                const cell = board.getCell(row, col);
+                if (cell) {
+                    // Добавляем информацию о специальном типе
+                    cell.special = getSpecialType(cell.type);
+                    this.drawCell(cell, row, col);
+                }
+            }
+        }
+    },
+
+    // Нарисовать текстуру дерева
+    drawWoodTexture() {
+        const boardWidth = this.cellSize * this.board.cols;
+        const boardHeight = this.cellSize * this.board.rows;
+        
+        // Базовый деревянный цвет
+        const gradient = this.ctx.createLinearGradient(
+            this.boardOffset.x, this.boardOffset.y,
+            this.boardOffset.x + boardWidth, this.boardOffset.y + boardHeight
+        );
+        gradient.addColorStop(0, '#a0522d');
+        gradient.addColorStop(0.5, '#8b4513');
+        gradient.addColorStop(1, '#a0522d');
+        
+        this.ctx.fillStyle = gradient;
+        this.ctx.strokeStyle = '#5c3d1e';
+        this.ctx.lineWidth = 3;
 
         this.ctx.beginPath();
         this.ctx.roundRect(
@@ -50,16 +76,17 @@ const Renderer = {
         this.ctx.fill();
         this.ctx.stroke();
 
-        // Рисуем клетки
-        for (let row = 0; row < board.rows; row++) {
-            for (let col = 0; col < board.cols; col++) {
-                const cell = board.getCell(row, col);
-                if (cell) {
-                    // Добавляем информацию о специальном типе
-                    cell.special = getSpecialType(cell.type);
-                    this.drawCell(cell, row, col);
-                }
+        // Линии текстуры дерева (горизонтальные)
+        this.ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+        this.ctx.lineWidth = 1;
+        for (let y = this.boardOffset.y; y < this.boardOffset.y + boardHeight; y += 8) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.boardOffset.x, y);
+            // Неровная линия
+            for (let x = this.boardOffset.x; x < this.boardOffset.x + boardWidth; x += 20) {
+                this.ctx.lineTo(x + 10 + Math.random() * 10, y + (Math.random() - 0.5) * 2);
             }
+            this.ctx.stroke();
         }
     },
 
@@ -98,7 +125,7 @@ const Renderer = {
         }
     },
 
-    // Получить цвет фона клетки
+    // Получить цвет фона клетки (деревянная текстура)
     getCellBackground(cell) {
         if (cell.frozen && cell.frozen > 0) {
             return '#a8d8ea'; // Ледяной цвет
@@ -112,7 +139,8 @@ const Renderer = {
             case 'star':
                 return 'rgba(255, 105, 180, 0.3)';
             default:
-                return 'rgba(92, 61, 30, 0.6)';
+                // Деревянная текстура - тёплый коричневый градиент
+                return '#8b5a2b';
         }
     },
 
