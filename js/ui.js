@@ -135,6 +135,7 @@ const UI = {
 
         // Звук
         this.updateSettingButtons('sound', settings.sound ? 'on' : 'off');
+        window.Sound.setEnabled(settings.sound);
 
         // Качество
         this.updateSettingButtons('quality', settings.quality);
@@ -167,6 +168,8 @@ const UI = {
         // Применяем настройки
         if (setting === 'quality') {
             this.applyQualitySetting(value);
+        } else if (setting === 'sound') {
+            window.Sound.setEnabled(actualValue);
         }
     },
 

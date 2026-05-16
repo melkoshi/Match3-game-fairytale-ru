@@ -17,6 +17,7 @@ window.Game = {
         window.Renderer.init('gameCanvas');
         window.initLevels();
         window.UI.init();
+        window.Sound.init();
         
         document.getElementById('gameCanvas').addEventListener('click', (e) => this.onClick(e));
         
@@ -118,6 +119,7 @@ window.Game = {
             this.selected = { row, col };
             this.render();
             window.Renderer.drawSelection(row, col);
+            window.Sound.play('select');
         } else {
             const dr = Math.abs(row - this.selected.row);
             const dc = Math.abs(col - this.selected.col);
@@ -158,6 +160,7 @@ window.Game = {
         // Есть матчи!
         this.movesLeft--;
         this.updateUI();
+        window.Sound.play('match');
         
         await this.handleMatches(matches, squares);
         
@@ -168,8 +171,10 @@ window.Game = {
         
         // Проверяем конец игры
         if (this.score >= this.target) {
+            window.Sound.play('win');
             window.UI.showWinPopup(this.score);
         } else if (this.movesLeft <= 0) {
+            window.Sound.play('lose');
             window.UI.showLosePopup();
         }
     },
@@ -317,6 +322,7 @@ window.Game = {
         }
         
         if (specialsToActivate.length > 0) {
+            window.Sound.play('special');
             await this.activateSpecials(specialsToActivate);
         }
         
@@ -517,6 +523,7 @@ window.Game = {
         if (shuffleMsg) {
             shuffleMsg.classList.add('active');
         }
+        window.Sound.play('shuffle');
         
         await this.delay(500);
         
