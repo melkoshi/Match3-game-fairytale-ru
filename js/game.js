@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1605261205';
-const BUILD_DATE = '2026-05-16 12:05';
+const GAME_VERSION = '1.1605261210';
+const BUILD_DATE = '2026-05-16 12:10';
 
 window.Game = {
     level: null,
@@ -30,24 +30,27 @@ window.Game = {
     
     vibrate(pattern) {
         try {
-            // Telegram WebApp HapticFeedback (iOS-friendly)
+            // Telegram WebApp HapticFeedback - use every time we can
             if (window.Telegram && window.Telegram.WebApp) {
                 const haptic = window.Telegram.WebApp.HapticFeedback;
-                if (haptic) {
-                    // Try selection first (lightest)
-                    if (haptic.selectionOccurred) {
-                        haptic.selectionOccurred();
-                    } else if (haptic.impactOccurred) {
-                        haptic.impactOccurred('medium');
-                    } else if (haptic.notificationOccurred) {
-                        haptic.notificationOccurred('success');
-                    }
+                if (haptic && haptic.impactOccurred) {
+                    haptic.impactOccurred('medium');
+                    return;
+                }
+                if (haptic && haptic.selectionOccurred) {
+                    haptic.selectionOccurred();
                     return;
                 }
             }
-            // Standard navigator.vibrate API (Android)
+            // iOS Safari and other browsers - use navigator.vibrate
             if ('vibrate' in navigator) {
-                navigator.vibrate(pattern);
+                const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+                if (isIOS && typeof pattern !== 'number') {
+                    // iOS only supports single number, use first value or 50ms
+                    navigator.vibrate(Array.isArray(pattern) ? pattern[0] || 50 : 50);
+                } else {
+                    navigator.vibrate(pattern);
+                }
             }
         } catch (e) {
             // Silently ignore vibration errors
