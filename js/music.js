@@ -9,12 +9,11 @@ const Music = {
     init() {
         this.audio = new Audio('media/background.mp3');
         this.audio.loop = this.loop;
-        this.audio.volume = this.volume;
         
-        // Load settings
-        const settings = window.Storage ? window.Storage.getSettings() : { music: true, musicVolume: 0.05 };
+        // Load settings - music is off by default, volume 1%
+        const settings = window.Storage ? window.Storage.getSettings() : { music: true };
         this.enabled = settings.music !== false;
-        this.volume = settings.musicVolume || 0.05;
+        this.volume = 0.01; // Very low default volume
         this.audio.volume = this.volume;
     },
     
