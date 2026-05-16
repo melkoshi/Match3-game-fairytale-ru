@@ -31,8 +31,11 @@ const Renderer = {
     drawBoard(board) {
         this.clear();
 
+        const boardWidth = this.cellSize * board.cols;
+        const boardHeight = this.cellSize * board.rows;
+
         // Рисуем деревянную текстуру доски
-        this.drawWoodTexture();
+        this.drawWoodTexture(boardWidth, boardHeight);
 
         // Рисуем клетки
         for (let row = 0; row < board.rows; row++) {
@@ -48,10 +51,7 @@ const Renderer = {
     },
 
     // Нарисовать текстуру дерева
-    drawWoodTexture() {
-        const boardWidth = this.cellSize * this.board.cols;
-        const boardHeight = this.cellSize * this.board.rows;
-        
+    drawWoodTexture(boardWidth, boardHeight) {
         // Базовый деревянный цвет
         const gradient = this.ctx.createLinearGradient(
             this.boardOffset.x, this.boardOffset.y,
@@ -60,7 +60,7 @@ const Renderer = {
         gradient.addColorStop(0, '#a0522d');
         gradient.addColorStop(0.5, '#8b4513');
         gradient.addColorStop(1, '#a0522d');
-        
+
         this.ctx.fillStyle = gradient;
         this.ctx.strokeStyle = '#5c3d1e';
         this.ctx.lineWidth = 3;
@@ -82,9 +82,8 @@ const Renderer = {
         for (let y = this.boardOffset.y; y < this.boardOffset.y + boardHeight; y += 8) {
             this.ctx.beginPath();
             this.ctx.moveTo(this.boardOffset.x, y);
-            // Неровная линия
             for (let x = this.boardOffset.x; x < this.boardOffset.x + boardWidth; x += 20) {
-                this.ctx.lineTo(x + 10 + Math.random() * 10, y + (Math.random() - 0.5) * 2);
+                this.ctx.lineTo(x + 10, y);
             }
             this.ctx.stroke();
         }
@@ -139,7 +138,6 @@ const Renderer = {
             case 'star':
                 return 'rgba(255, 105, 180, 0.3)';
             default:
-                // Деревянная текстура - тёплый коричневый градиент
                 return '#8b5a2b';
         }
     },
