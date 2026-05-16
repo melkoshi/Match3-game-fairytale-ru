@@ -136,8 +136,6 @@ const UI = {
         // Звук
         this.updateSettingButtons('sound', settings.sound ? 'on' : 'off');
         window.Sound.setEnabled(settings.sound);
-        this.updateSettingButtons('soundVol', settings.soundVolume ? String(settings.soundVolume) : '0.3');
-        window.Sound.setVolume(settings.soundVolume || 0.3);
 
         // Качество
         this.updateSettingButtons('quality', settings.quality);
@@ -145,8 +143,6 @@ const UI = {
         // Музыка
         this.updateSettingButtons('music', settings.music ? 'on' : 'off');
         window.Music.setEnabled(settings.music);
-        this.updateSettingButtons('musicVol', settings.musicVolume ? String(settings.musicVolume) : '0.1');
-        window.Music.setVolume(settings.musicVolume || 0.1);
     },
 
     // Обновить кнопки настроек
@@ -177,12 +173,6 @@ const UI = {
             window.Sound.setEnabled(actualValue);
         } else if (setting === 'music') {
             window.Music.setEnabled(actualValue);
-        } else if (setting === 'soundVol') {
-            const vol = parseFloat(value);
-            window.Sound.setVolume(vol);
-        } else if (setting === 'musicVol') {
-            const vol = parseFloat(value);
-            window.Music.setVolume(vol);
         }
     },
 
