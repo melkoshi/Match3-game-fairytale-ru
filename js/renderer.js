@@ -147,9 +147,8 @@ const Renderer = {
         const icon = getIcon(type);
         const img = new Image();
         img.src = icon.image;
-        const padding = size * 0.05;
+        const padding = 2;
         const imgSize = size - padding * 2;
-        const offset = (size - imgSize) / 2;
         
         // Рисуем обводку (деревянный цвет)
         this.ctx.strokeStyle = '#5c3d1e';
@@ -158,9 +157,10 @@ const Renderer = {
         this.ctx.roundRect(x + padding, y + padding, imgSize, imgSize, 3);
         this.ctx.stroke();
         
-        // Рисуем картинку только когда она загружена
+        // Рисуем картинку только когда она загружена, без растягивания
         if (img.complete && img.naturalWidth > 0) {
-            this.ctx.drawImage(img, x + offset, y + offset, imgSize, imgSize);
+            // Рисуем картинку в натуральном размере (она может быть меньше клетки)
+            this.ctx.drawImage(img, x + padding, y + padding, imgSize, imgSize);
         }
     },
 
