@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1605261430';
-const BUILD_DATE = '2026-05-16 14:30';
+const GAME_VERSION = '1.1605261215';
+const BUILD_DATE = '2026-05-16 12:15';
 
 window.Game = {
     level: null,
@@ -13,35 +13,18 @@ window.Game = {
     board: null,
     
     init() {
-        console.log('Game.init starting...');
-        try {
-            window.Renderer.init('gameCanvas');
-            console.log('Renderer inited');
-            window.initLevels();
-            console.log('Levels inited');
-            window.UI.init();
-            console.log('UI inited');
-            window.Sound.init();
-            window.Music.init();
-            
-            document.getElementById('gameCanvas').addEventListener('click', (e) => this.onClick(e));
-            
-            // Показываем версию сразу
-            const versionEl = document.getElementById('versionDisplay');
-            console.log('versionDisplay element:', versionEl);
-            if (versionEl) {
-                versionEl.textContent = `Версия ${GAME_VERSION} (${BUILD_DATE})`;
-                console.log('Version set');
-            }
-            
-            // Предзагружаем иконки в фоне
-            loadIcons(() => {
-                console.log('Icons loaded callback');
-                window.Renderer.redrawBoard();
-            });
-            console.log('Game.init completed');
-        } catch (e) {
-            console.error('Game.init error:', e);
+        window.Renderer.init('gameCanvas');
+        window.initLevels();
+        window.UI.init();
+        window.Sound.init();
+        window.Music.init();
+        
+        document.getElementById('gameCanvas').addEventListener('click', (e) => this.onClick(e));
+        
+        // Показываем версию на главном экране
+        const versionEl = document.getElementById('versionDisplay');
+        if (versionEl) {
+            versionEl.textContent = `Версия ${GAME_VERSION} (${BUILD_DATE})`;
         }
     },
     

@@ -6,17 +6,9 @@ const UI = {
 
     // Инициализация UI
     init() {
-        console.log('UI.init starting...');
-        try {
-            this.bindEvents();
-            console.log('Events bound');
-            this.loadSettings();
-            console.log('Settings loaded');
-            this.updateContinueButton();
-            console.log('UI.init completed');
-        } catch (e) {
-            console.error('UI.init error:', e);
-        }
+        this.bindEvents();
+        this.loadSettings();
+        this.updateContinueButton();
     },
 
     // Привязка событий
