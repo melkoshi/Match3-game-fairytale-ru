@@ -145,8 +145,7 @@ const Renderer = {
     // Нарисовать иконку (картинка с обводкой)
     drawIcon(type, x, y, size) {
         const icon = getIcon(type);
-        const img = new Image();
-        img.src = icon.image;
+        const img = getIconImage(type);
         const padding = 2;
         const imgSize = size - padding * 2;
         
@@ -157,9 +156,12 @@ const Renderer = {
         this.ctx.roundRect(x + padding, y + padding, imgSize, imgSize, 3);
         this.ctx.stroke();
         
-        // Рисуем картинку только когда она загружена, без растягивания
-        if (img.complete && img.naturalWidth > 0) {
-            // Рисуем картинку в натуральном размере (она может быть меньше клетки)
+        // Включаем сглаживание для чёткой картинки
+        this.ctx.imageSmoothingEnabled = true;
+        this.ctx.imageSmoothingQuality = 'high';
+        
+        // Рисуем картинку из кеша
+        if (img && img.complete && img.naturalWidth > 0) {
             this.ctx.drawImage(img, x + padding, y + padding, imgSize, imgSize);
         }
     },
