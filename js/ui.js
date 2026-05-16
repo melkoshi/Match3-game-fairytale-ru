@@ -28,6 +28,22 @@ const UI = {
             btn.addEventListener('click', () => this.handleSettingClick(btn));
         });
         document.getElementById('resetProgress').addEventListener('click', () => this.resetProgress());
+        
+        // Слайдеры громкости
+        const soundVolEl = document.getElementById('soundVolume');
+        if (soundVolEl) {
+            soundVolEl.addEventListener('input', (e) => {
+                const vol = e.target.value / 100;
+                window.Sound.setVolume(vol);
+            });
+        }
+        const musicVolEl = document.getElementById('musicVolume');
+        if (musicVolEl) {
+            musicVolEl.addEventListener('input', (e) => {
+                const vol = e.target.value / 100;
+                window.Music.setVolume(vol);
+            });
+        }
 
         // Шапка
         document.getElementById('menuBtn').addEventListener('click', () => this.showScreen('settingsScreen'));
@@ -136,6 +152,8 @@ const UI = {
         // Звук
         this.updateSettingButtons('sound', settings.sound ? 'on' : 'off');
         window.Sound.setEnabled(settings.sound);
+        const soundVolEl = document.getElementById('soundVolume');
+        if (soundVolEl) soundVolEl.value = (settings.soundVolume || 0.5) * 100;
 
         // Качество
         this.updateSettingButtons('quality', settings.quality);
@@ -143,6 +161,8 @@ const UI = {
         // Музыка
         this.updateSettingButtons('music', settings.music ? 'on' : 'off');
         window.Music.setEnabled(settings.music);
+        const musicVolEl = document.getElementById('musicVolume');
+        if (musicVolEl) musicVolEl.value = (settings.musicVolume || 0.05) * 100;
     },
 
     // Обновить кнопки настроек

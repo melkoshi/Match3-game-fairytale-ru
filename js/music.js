@@ -4,7 +4,7 @@ const Music = {
     enabled: true,
     audio: null,
     loop: true,
-    volume: 0.3,
+    volume: 0.05,
     
     init() {
         this.audio = new Audio('media/background.mp3');
@@ -12,8 +12,10 @@ const Music = {
         this.audio.volume = this.volume;
         
         // Load settings
-        const settings = window.Storage ? window.Storage.getSettings() : { music: true };
+        const settings = window.Storage ? window.Storage.getSettings() : { music: true, musicVolume: 0.05 };
         this.enabled = settings.music !== false;
+        this.volume = settings.musicVolume || 0.05;
+        this.audio.volume = this.volume;
     },
     
     play() {
@@ -71,6 +73,9 @@ const Music = {
         this.volume = vol;
         if (this.audio) {
             this.audio.volume = vol;
+        }
+        if (window.Storage) {
+            window.Storage.setSetting('musicVolume', vol);
         }
     }
 };

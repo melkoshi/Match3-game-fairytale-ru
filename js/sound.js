@@ -10,7 +10,9 @@ const Sound = {
         } catch (e) {
             console.log('Audio not supported');
         }
-        this.enabled = window.Storage ? window.Storage.getSettings().sound : true;
+        const settings = window.Storage ? window.Storage.getSettings() : { sound: true, soundVolume: 0.5 };
+        this.enabled = settings.sound !== false;
+        this.volume = settings.soundVolume || 0.5;
     },
     
     play(type) {
@@ -59,7 +61,8 @@ const Sound = {
             osc.type = type;
             osc.frequency.value = freq;
             
-            gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+            const finalVolume = (volume || 0.5) * this.volume;
+            gain.gain.setValueAtTime(finalVolume, this.ctx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
             
             osc.connect(gain);
@@ -86,6 +89,13 @@ const Sound = {
     
     setEnabled(enabled) {
         this.enabled = enabled;
+    },
+    
+    setVolume(volume) {
+        this.volume = volume;
+        if (window.Storage) {
+            window.Storage.setSetting('soundVolume', volume);
+        }
     }
 };
 

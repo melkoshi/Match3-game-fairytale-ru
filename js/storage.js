@@ -82,7 +82,9 @@ const Storage = {
         return data || {
             sound: true,
             music: true,
-            quality: 'high'
+            quality: 'high',
+            soundVolume: 0.5,
+            musicVolume: 0.05
         };
     },
 
