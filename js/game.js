@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1605261025';
-const BUILD_DATE = '2026-05-16 10:25';
+const GAME_VERSION = '1.1605261040';
+const BUILD_DATE = '2026-05-16 10:40';
 
 window.Game = {
     level: null,
@@ -29,8 +29,24 @@ window.Game = {
     },
     
     vibrate(pattern) {
-        if ('vibrate' in navigator) {
-            navigator.vibrate(pattern);
+        // Try multiple vibration APIs for different environments
+        const vibrateFn = navigator.vibrate || 
+                          (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback);
+        
+        if (vibrateFn) {
+            if (typeof vibrateFn === 'function') {
+                vibrateFn(pattern);
+            } else {
+                navigator.vibrate(pattern);
+            }
+            return;
+        }
+        
+        // Fallback for iOS Telegram
+        if (window.Telegram && window.Telegram.WebApp) {
+            try {
+                window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+            } catch(e) {}
         }
     },
     
