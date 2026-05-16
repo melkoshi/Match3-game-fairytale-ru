@@ -10,9 +10,10 @@ const Sound = {
         } catch (e) {
             console.log('Audio not supported');
         }
-        const settings = window.Storage ? window.Storage.getSettings() : { sound: true, soundVolume: 0.5 };
+        const settings = window.Storage ? window.Storage.getSettings() : { sound: true };
         this.enabled = settings.sound !== false;
-        this.volume = settings.soundVolume || 0.5;
+        // Sound effects at reasonable volume (30%)
+        this.volume = 0.3;
     },
     
     play(type) {

@@ -4,7 +4,7 @@ const Music = {
     enabled: true,
     audio: null,
     loop: true,
-    volume: 0.02,
+    volume: 0.01,
     
     init() {
         this.audio = new Audio('media/background.mp3');
