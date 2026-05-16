@@ -30,15 +30,22 @@ window.Game = {
     
     vibrate(pattern) {
         try {
-            // Telegram WebApp HapticFeedback
+            // Telegram WebApp HapticFeedback (iOS-friendly)
             if (window.Telegram && window.Telegram.WebApp) {
                 const haptic = window.Telegram.WebApp.HapticFeedback;
                 if (haptic) {
-                    haptic.impactOccurred('medium');
+                    // Try selection first (lightest)
+                    if (haptic.selectionOccurred) {
+                        haptic.selectionOccurred();
+                    } else if (haptic.impactOccurred) {
+                        haptic.impactOccurred('medium');
+                    } else if (haptic.notificationOccurred) {
+                        haptic.notificationOccurred('success');
+                    }
                     return;
                 }
             }
-            // Standard navigator.vibrate API
+            // Standard navigator.vibrate API (Android)
             if ('vibrate' in navigator) {
                 navigator.vibrate(pattern);
             }
