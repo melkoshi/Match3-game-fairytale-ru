@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1705260200';
-const BUILD_DATE = '2026-05-17 02:00';
+const GAME_VERSION = '1.1705260215';
+const BUILD_DATE = '2026-05-17 02:15';
 
 window.Game = {
     level: null,
@@ -11,6 +11,7 @@ window.Game = {
     target: 0,
     selected: null,
     board: null,
+    hintShown: false,
     
     init() {
         // Скрываем главное меню пока грузимся
@@ -587,71 +588,151 @@ window.Game = {
     },
     
     // Найти возможный ход (для подсказки)
+    // Ищем ходы которые создают 4+ или 2x2 (special icons)
     findHint() {
         const rows = this.level.rows;
         const cols = this.level.cols;
         
-        // Проверяем горизонтальные соседства
+        // Проверяем создание special icons (4 в ряд, 5+, 2x2)
+        // Сначала горизонтальные
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols - 1; c++) {
-                if (this.board[r][c] && this.board[r][c+1]) {
-                    const type1 = this.board[r][c].type;
-                    const type2 = this.board[r][c+1].type;
-                    if (type1 && type2 && !isSpecialIcon(type1) && !isSpecialIcon(type2)) {
-                        // Меняем местами
-                        this.board[r][c] = this.board[r][c+1];
-                        this.board[r][c+1] = { type: type1 };
-                        
-                        const matches = this.findMatches();
-                        const squares = this.findSquares();
-                        
-                        // Возвращаем обратно
-                        this.board[r][c+1] = this.board[r][c];
-                        this.board[r][c] = { type: type2 };
-                        
-                        if (matches.length > 0 || squares.length > 0) {
-                            return { row1: r, col1: c, row2: r, col2: c + 1 };
+                const cell1 = this.board[r][c];
+                const cell2 = this.board[r][c+1];
+                if (cell1 && cell2 && !isSpecialIcon(cell1.type) && !isSpecialIcon(cell2.type)) {
+                    // Меняем местами
+                    this.board[r][c] = cell2;
+                    this.board[r][c+1] = cell1;
+                    
+                    const matches = this.findMatches();
+                    const squares = this.findSquares();
+                    
+                    // Возвращаем обратно
+                    this.board[r][c] = cell1;
+                    this.board[r][c+1] = cell2;
+                    
+                    // Ищем важные ходы: 4+, 5, или 2x2
+                    for (const match of matches) {
+                        if (match.length >= 4 || squares.length > 0) {
+                            return { row1: r, col1: c, row2: r, col2: c + 1, reason: match.length >= 5 ? 'BOMB' : (match.length >= 4 ? 'ROCKET' : 'SPECIAL') };
                         }
+                    }
+                    for (const sq of squares) {
+                        return { row1: r, col1: c, row2: r, col2: c + 1, reason: 'DIAGONAL' };
                     }
                 }
             }
         }
         
-        // Проверяем вертикальные соседства
+        // Проверяем вертикальные
         for (let r = 0; r < rows - 1; r++) {
             for (let c = 0; c < cols; c++) {
-                if (this.board[r][c] && this.board[r+1][c]) {
-                    const type1 = this.board[r][c].type;
-                    const type2 = this.board[r+1][c].type;
-                    if (type1 && type2 && !isSpecialIcon(type1) && !isSpecialIcon(type2)) {
-                        // Меняем местами
-                        this.board[r][c] = this.board[r+1][c];
-                        this.board[r+1][c] = { type: type1 };
-                        
-                        const matches = this.findMatches();
-                        const squares = this.findSquares();
-                        
-                        // Возвращаем обратно
-                        this.board[r+1][c] = this.board[r][c];
-                        this.board[r][c] = { type: type2 };
-                        
-                        if (matches.length > 0 || squares.length > 0) {
-                            return { row1: r, col1: c, row2: r + 1, col2: c };
+                const cell1 = this.board[r][c];
+                const cell2 = this.board[r+1][c];
+                if (cell1 && cell2 && !isSpecialIcon(cell1.type) && !isSpecialIcon(cell2.type)) {
+                    // Меняем местами
+                    this.board[r][c] = cell2;
+                    this.board[r+1][c] = cell1;
+                    
+                    const matches = this.findMatches();
+                    const squares = this.findSquares();
+                    
+                    // Возвращаем обратно
+                    this.board[r][c] = cell1;
+                    this.board[r+1][c] = cell2;
+                    
+                    // Ищем важные ходы
+                    for (const match of matches) {
+                        if (match.length >= 4 || squares.length > 0) {
+                            return { row1: r, col1: c, row2: r + 1, col2: c, reason: match.length >= 5 ? 'BOMB' : (match.length >= 4 ? 'ROCKET' : 'SPECIAL') };
                         }
+                    }
+                    for (const sq of squares) {
+                        return { row1: r, col1: c, row2: r + 1, col2: c, reason: 'DIAGONAL' };
                     }
                 }
             }
         }
         
-        return null; // Нет возможных ходов
+        // Если нет special - ищем любой ход с 3+ 
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols - 1; c++) {
+                const cell1 = this.board[r][c];
+                const cell2 = this.board[r][c+1];
+                if (cell1 && cell2 && !isSpecialIcon(cell1.type) && !isSpecialIcon(cell2.type)) {
+                    this.board[r][c] = cell2;
+                    this.board[r][c+1] = cell1;
+                    
+                    const matches = this.findMatches();
+                    const squares = this.findSquares();
+                    
+                    this.board[r][c] = cell1;
+                    this.board[r][c+1] = cell2;
+                    
+                    if (matches.length > 0 || squares.length > 0) {
+                        return { row1: r, col1: c, row2: r, col2: c + 1, reason: 'MATCH' };
+                    }
+                }
+            }
+        }
+        
+        for (let r = 0; r < rows - 1; r++) {
+            for (let c = 0; c < cols; c++) {
+                const cell1 = this.board[r][c];
+                const cell2 = this.board[r+1][c];
+                if (cell1 && cell2 && !isSpecialIcon(cell1.type) && !isSpecialIcon(cell2.type)) {
+                    this.board[r][c] = cell2;
+                    this.board[r+1][c] = cell1;
+                    
+                    const matches = this.findMatches();
+                    const squares = this.findSquares();
+                    
+                    this.board[r][c] = cell1;
+                    this.board[r+1][c] = cell2;
+                    
+                    if (matches.length > 0 || squares.length > 0) {
+                        return { row1: r, col1: c, row2: r + 1, col2: c, reason: 'MATCH' };
+                    }
+                }
+            }
+        }
+        
+        return null;
     },
     
-    // Показать подсказку
+    // Показать подсказку с анимацией
     showHint() {
+        // Убираем предыдущую подсказку
+        if (this.hintShown) {
+            Renderer.clear();
+            Renderer.drawBoard(Board);
+            this.hintShown = false;
+            return;
+        }
+        
         const hint = this.findHint();
         if (hint) {
             this.vibrate(50);
-            Renderer.drawHint(hint.row1, hint.col1, hint.row2, hint.col2);
+            
+            // Мигаем подсказкой 3 раза
+            let count = 0;
+            const flashInterval = setInterval(() => {
+                if (count >= 6) {
+                    clearInterval(flashInterval);
+                    this.hintShown = false;
+                    Renderer.drawBoard(Board);
+                } else {
+                    if (count % 2 === 0) {
+                        Renderer.drawHint(hint.row1, hint.col1, hint.row2, hint.col2);
+                    } else {
+                        Renderer.clear();
+                        Renderer.drawBoard(Board);
+                    }
+                    count++;
+                }
+            }, 400);
+            
+            this.hintShown = true;
         }
     },
     shuffleBoard() {
