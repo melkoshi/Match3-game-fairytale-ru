@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1605261410';
-const BUILD_DATE = '2026-05-16 14:10';
+const GAME_VERSION = '1.1605261430';
+const BUILD_DATE = '2026-05-16 14:30';
 
 window.Game = {
     level: null,
@@ -13,7 +13,6 @@ window.Game = {
     board: null,
     
     init() {
-        // Инициализируем базовые вещи сразу
         window.Renderer.init('gameCanvas');
         window.initLevels();
         window.UI.init();
@@ -28,9 +27,9 @@ window.Game = {
             versionEl.textContent = `Версия ${GAME_VERSION} (${BUILD_DATE})`;
         }
         
-        // Загружаем иконки в фоне (не блокируем UI)
+        // Предзагружаем иконки в фоне
         loadIcons(() => {
-            console.log('Icons loaded');
+            window.Renderer.redrawBoard();
         });
     },
     
