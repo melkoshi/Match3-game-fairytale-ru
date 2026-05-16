@@ -19,35 +19,56 @@ const ICONS = {
 
 // Кеш загруженных изображений
 const iconImages = {};
+let allIconsLoaded = false;
 
-// Загрузить все иконки
+// Загрузить все иконки и вернуть Promise
+function preloadIcons() {
+    return new Promise((resolve) => {
+        const total = Object.keys(ICONS).length;
+        let loaded = 0;
+        
+        if (total === 0) {
+            allIconsLoaded = true;
+            resolve();
+            return;
+        }
+        
+        for (const type in ICONS) {
+            const img = new Image();
+            img.src = ICONS[type].image;
+            
+            img.onload = () => {
+                iconImages[type] = img;
+                loaded++;
+                if (loaded >= total) {
+                    allIconsLoaded = true;
+                    resolve();
+                }
+            };
+            
+            img.onerror = () => {
+                console.warn('Failed to load icon:', ICONS[type].image);
+                loaded++;
+                if (loaded >= total) {
+                    allIconsLoaded = true;
+                    resolve();
+                }
+            };
+        }
+        
+        // Fallback через 5 секунд
+        setTimeout(() => {
+            if (!allIconsLoaded) {
+                allIconsLoaded = true;
+                resolve();
+            }
+        }, 5000);
+    });
+}
+
+// Загрузить все иконки (старый callback интерфейс для совместимости)
 function loadIcons(callback) {
-    let loaded = 0;
-    const total = Object.keys(ICONS).length;
-    
-    if (total === 0) {
-        if (callback) callback();
-        return;
-    }
-    
-    for (const type in ICONS) {
-        const img = new Image();
-        img.src = ICONS[type].image;
-        img.onload = () => {
-            iconImages[type] = img;
-            loaded++;
-            if (loaded >= total && callback) {
-                callback();
-            }
-        };
-        img.onerror = () => {
-            console.warn('Failed to load icon:', ICONS[type].image);
-            loaded++;
-            if (loaded >= total && callback) {
-                callback();
-            }
-        };
-    }
+    preloadIcons().then(callback);
 }
 
 // Получить загруженное изображение

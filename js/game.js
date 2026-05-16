@@ -34,7 +34,7 @@ window.Game = {
         
         // Загружаем иконки и показываем прогресс
         this.updateLoadingProgress(10, 'Загрузка иконок...');
-        loadIcons(() => {
+        preloadIcons().then(() => {
             this.updateLoadingProgress(80, 'Загрузка звуков...');
             setTimeout(() => {
                 this.updateLoadingProgress(100, 'Готово!');
