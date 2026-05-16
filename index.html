@@ -304,6 +304,25 @@
             cursor: pointer;
             z-index: 50;
         }
+        
+        .shuffle-msg {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            color: #ffd700;
+            font-size: 18px;
+            padding: 20px 30px;
+            border-radius: 15px;
+            border: 2px solid #ffd700;
+            z-index: 50;
+            display: none;
+        }
+        
+        .shuffle-msg.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -408,6 +427,9 @@
             <button class="btn btn-secondary" id="loseMenuBtn" style="margin-top: 10px;">В меню</button>
         </div>
     </div>
+
+    <!-- Shuffle Message -->
+    <div class="shuffle-msg" id="shuffleMsg">🔀 Перемешиваем доску...</div>
 
     <!-- Scripts -->
     <script src="js/icons.js"></script>

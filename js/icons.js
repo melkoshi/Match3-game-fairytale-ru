@@ -12,9 +12,9 @@ const ICONS = {
     FOX: { emoji: '🦊', name: 'Лиса', color: '#ff7f50', points: 10 },
 
     // Специальные иконки (создаются при комбинациях)
-    ROCKET: { emoji: '🚀', name: 'Ракета', color: '#ffd700', points: 50, special: true },
-    BOMB: { emoji: '💣', name: 'Бомба', color: '#ff4500', points: 75, special: true },
-    STAR: { emoji: '⭐', name: 'Звезда', color: '#ffff00', points: 100, special: true }
+    ROCKET: { emoji: '🚀', name: 'Ракета', color: '#ffd700', points: 50, special: 'rocket' },
+    BOMB: { emoji: '💣', name: 'Бомба', color: '#ff4500', points: 75, special: 'bomb' },
+    DIAGONAL: { emoji: '✨', name: 'Диа-бомба', color: '#ff69b4', points: 100, special: 'star' }
 };
 
 // Типы иконок для обычной игры (без специальных)
@@ -34,6 +34,11 @@ function getRandomIcon() {
 // Проверить является ли иконка специальной
 function isSpecialIcon(type) {
     return ICONS[type] && ICONS[type].special;
+}
+
+// Получить тип специальной иконки
+function getSpecialType(type) {
+    return ICONS[type] ? ICONS[type].special : null;
 }
 
 // Получить emoji для типа иконки
@@ -60,5 +65,6 @@ window.NORMAL_ICONS = NORMAL_ICONS;
 window.getIcon = getIcon;
 window.getRandomIcon = getRandomIcon;
 window.isSpecialIcon = isSpecialIcon;
+window.getSpecialType = getSpecialType;
 window.getEmoji = getEmoji;
 window.drawIcon = drawIcon;

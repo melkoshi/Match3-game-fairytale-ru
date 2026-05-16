@@ -55,6 +55,8 @@ const Renderer = {
             for (let col = 0; col < board.cols; col++) {
                 const cell = board.getCell(row, col);
                 if (cell) {
+                    // Добавляем информацию о специальном типе
+                    cell.special = getSpecialType(cell.type);
                     this.drawCell(cell, row, col);
                 }
             }
@@ -108,7 +110,7 @@ const Renderer = {
             case 'bomb':
                 return 'rgba(255, 69, 0, 0.3)';
             case 'star':
-                return 'rgba(255, 255, 0, 0.3)';
+                return 'rgba(255, 105, 180, 0.3)';
             default:
                 return 'rgba(92, 61, 30, 0.6)';
         }

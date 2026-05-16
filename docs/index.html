@@ -5,82 +5,316 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🍓 Древнерусская Летняя Сказка</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background: linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 50%, #1a0a2e 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             color: #f4e4bc;
+            overflow-x: hidden;
         }
+
+        /* Header */
         .header {
-            width: 100%; padding: 15px 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0,0,0,0.3); border-bottom: 2px solid #8b5a2b;
+            width: 100%;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 2px solid #8b5a2b;
         }
-        .header h1 { font-size: 18px; color: #ffd700; }
-        .header-btn { background: none; border: none; font-size: 24px; cursor: pointer; padding: 5px 10px; }
-        .screen { display: none; flex-direction: column; align-items: center; padding: 20px; width: 100%; max-width: 400px; }
-        .screen.active { display: flex; }
-        .title { font-size: 28px; color: #ffd700; text-align: center; margin-bottom: 10px; }
-        .subtitle { font-size: 14px; color: #d4c4a8; text-align: center; margin-bottom: 30px; }
+
+        .header h1 {
+            font-size: 18px;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .header-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .header-btn:hover {
+            background: rgba(255,215,0,0.2);
+        }
+
+        /* Main Menu */
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .title {
+            font-size: 28px;
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.7);
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #d4c4a8;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* Buttons */
         .btn {
             background: linear-gradient(180deg, #8b5a2b 0%, #5c3d1e 100%);
-            border: 3px solid #ffd700; border-radius: 15px;
-            padding: 15px 40px; font-size: 18px; color: #ffd700;
-            cursor: pointer; margin: 10px 0; width: 100%; max-width: 280px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5); box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            padding: 15px 40px;
+            font-size: 18px;
+            color: #ffd700;
+            cursor: pointer;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 280px;
+            transition: all 0.2s;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
         }
-        .btn:hover { background: linear-gradient(180deg, #a67030 0%, #7a5030 100%); }
-        .btn-secondary { background: linear-gradient(180deg, #4a3728 0%, #2d1f15 100%); border-color: #c9a959; font-size: 14px; padding: 10px 20px; }
-        .levels-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 20px 0; width: 100%; }
+
+        .btn:hover, .btn:active {
+            background: linear-gradient(180deg, #a67030 0%, #7a5030 100%);
+            transform: scale(1.05);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(180deg, #4a3728 0%, #2d1f15 100%);
+            border-color: #c9a959;
+            font-size: 14px;
+            padding: 10px 20px;
+        }
+
+        /* Level Select */
+        .levels-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            width: 100%;
+        }
+
         .level-btn {
-            aspect-ratio: 1; background: linear-gradient(180deg, #5c3d1e 0%, #3d2810 100%);
-            border: 2px solid #8b5a2b; border-radius: 10px; font-size: 16px;
-            color: #ffd700; cursor: pointer;
+            aspect-ratio: 1;
+            background: linear-gradient(180deg, #5c3d1e 0%, #3d2810 100%);
+            border: 2px solid #8b5a2b;
+            border-radius: 10px;
+            font-size: 16px;
+            color: #ffd700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .level-btn:hover:not(:disabled) { background: linear-gradient(180deg, #7a5030 0%, #5c3d1e 100%); border-color: #ffd700; }
-        .level-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .level-btn.completed { background: linear-gradient(180deg, #2d5a27 0%, #1a3d15 100%); border-color: #4a9c3d; }
-        .settings-group { width: 100%; margin: 15px 0; }
-        .settings-label { font-size: 14px; color: #c9a959; margin-bottom: 8px; display: block; }
-        .settings-row { display: flex; gap: 10px; }
+
+        .level-btn:hover:not(:disabled) {
+            background: linear-gradient(180deg, #7a5030 0%, #5c3d1e 100%);
+            border-color: #ffd700;
+        }
+
+        .level-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .level-btn.completed {
+            background: linear-gradient(180deg, #2d5a27 0%, #1a3d15 100%);
+            border-color: #4a9c3d;
+        }
+
+        .level-btn.current {
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255,215,0,0.5);
+        }
+
+        /* Settings */
+        .settings-group {
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .settings-label {
+            font-size: 14px;
+            color: #c9a959;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .settings-row {
+            display: flex;
+            gap: 10px;
+        }
+
         .setting-btn {
-            flex: 1; padding: 12px; background: linear-gradient(180deg, #3d2810 0%, #2d1f15 100%);
-            border: 2px solid #5c3d1e; border-radius: 10px; color: #d4c4a8; font-size: 14px; cursor: pointer;
+            flex: 1;
+            padding: 12px;
+            background: linear-gradient(180deg, #3d2810 0%, #2d1f15 100%);
+            border: 2px solid #5c3d1e;
+            border-radius: 10px;
+            color: #d4c4a8;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        .setting-btn.active { background: linear-gradient(180deg, #5c3d1e 0%, #3d2810 100%); border-color: #ffd700; color: #ffd700; }
-        #gameCanvas { border: 4px solid #8b5a2b; border-radius: 10px; box-shadow: 0 0 20px rgba(139, 90, 43, 0.5); touch-action: none; }
-        .game-info { display: flex; justify-content: space-between; width: 100%; max-width: 360px; margin: 15px 0; padding: 10px 15px; background: rgba(0,0,0,0.3); border-radius: 10px; border: 2px solid #5c3d1e; }
-        .game-info-item { text-align: center; }
-        .game-info-value { font-size: 20px; color: #ffd700; font-weight: bold; }
-        .game-info-label { font-size: 11px; color: #c9a959; }
-        .popup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }
-        .popup.active { display: flex; }
+
+        .setting-btn.active {
+            background: linear-gradient(180deg, #5c3d1e 0%, #3d2810 100%);
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+
+        /* Game Board */
+        #gameCanvas {
+            border: 4px solid #8b5a2b;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(139, 90, 43, 0.5);
+            touch-action: none;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 360px;
+            margin: 15px 0;
+            padding: 10px 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            border: 2px solid #5c3d1e;
+        }
+
+        .game-info-item {
+            text-align: center;
+        }
+
+        .game-info-value {
+            font-size: 20px;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .game-info-label {
+            font-size: 11px;
+            color: #c9a959;
+        }
+
+        /* Popup */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .popup.active {
+            display: flex;
+        }
+
         .popup-content {
-            background: linear-gradient(180deg, #2d1b4e 0%, #1a0a2e 100%); border: 4px solid #ffd700;
-            border-radius: 20px; padding: 30px; text-align: center; max-width: 300px;
+            background: linear-gradient(180deg, #2d1b4e 0%, #1a0a2e 100%);
+            border: 4px solid #ffd700;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 300px;
+            animation: popIn 0.3s ease;
         }
-        .popup-title { font-size: 24px; color: #ffd700; margin-bottom: 15px; }
-        .popup-text { font-size: 14px; color: #d4c4a8; margin-bottom: 20px; }
-        .shuffle-msg {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9); color: #ffd700; font-size: 18px;
-            padding: 20px 30px; border-radius: 15px; border: 2px solid #ffd700;
-            z-index: 50; display: none;
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
-        .shuffle-msg.active { display: block; }
+
+        .popup-title {
+            font-size: 24px;
+            color: #ffd700;
+            margin-bottom: 15px;
+        }
+
+        .popup-text {
+            font-size: 14px;
+            color: #d4c4a8;
+            margin-bottom: 20px;
+        }
+
+        /* Decorative elements */
+        .decoration {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0.1;
+        }
+
+        /* Sound toggle */
+        .sound-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #5c3d1e;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 50;
+        }
     </style>
 </head>
 <body>
+    <!-- Header -->
     <div class="header">
         <button class="header-btn" id="backBtn" style="display:none;">⬅️</button>
         <h1>🍓 Летняя Сказка</h1>
         <button class="header-btn" id="menuBtn">⚙️</button>
     </div>
 
+    <!-- Main Menu Screen -->
     <div class="screen active" id="mainMenu">
         <div style="font-size: 60px; margin: 20px 0;">🏛️</div>
         <div class="title">Древнерусская<br>Летняя Сказка</div>
@@ -88,23 +322,20 @@
         <button class="btn" id="playBtn">🍓 Играть</button>
         <button class="btn btn-secondary" id="continueBtn" style="display:none;">Продолжить</button>
         <button class="btn btn-secondary" id="settingsBtn">⚙️ Настройки</button>
+        <div id="versionDisplay" style="margin-top: 30px; font-size: 12px; color: #8b7355;"></div>
     </div>
 
+    <!-- Level Select Screen -->
     <div class="screen" id="levelSelect">
         <div class="title">Выбор Уровня</div>
         <div class="levels-grid" id="levelsGrid"></div>
         <button class="btn btn-secondary" id="backToMenu">⬅️ Назад</button>
     </div>
 
+    <!-- Settings Screen -->
     <div class="screen" id="settingsScreen">
         <div class="title">⚙️ Настройки</div>
-        <div class="settings-group">
-            <label class="settings-label">🖼️ Качество</label>
-            <div class="settings-row">
-                <button class="setting-btn active" data-setting="quality" data-value="high">Высокое</button>
-                <button class="setting-btn" data-setting="quality" data-value="low">Низкое</button>
-            </div>
-        </div>
+
         <div class="settings-group">
             <label class="settings-label">🔊 Звук</label>
             <div class="settings-row">
@@ -112,6 +343,15 @@
                 <button class="setting-btn" data-setting="sound" data-value="off">Выкл</button>
             </div>
         </div>
+
+        <div class="settings-group">
+            <label class="settings-label">🖼️ Качество</label>
+            <div class="settings-row">
+                <button class="setting-btn active" data-setting="quality" data-value="high">Высокое</button>
+                <button class="setting-btn" data-setting="quality" data-value="low">Низкое</button>
+            </div>
+        </div>
+
         <div class="settings-group">
             <label class="settings-label">🎵 Музыка</label>
             <div class="settings-row">
@@ -119,696 +359,63 @@
                 <button class="setting-btn" data-setting="music" data-value="off">Выкл</button>
             </div>
         </div>
-        <button class="btn btn-secondary" id="resetProgress">🔄 Сбросить прогресс</button>
-        <button class="btn btn-secondary" id="settingsBack">⬅️ Назад</button>
+
+        <div style="margin-top: 20px;">
+            <button class="btn btn-secondary" id="resetProgress">🔄 Сбросить прогресс</button>
+        </div>
+
+        <button class="btn btn-secondary" id="settingsBack" style="margin-top: 20px;">⬅️ Назад</button>
     </div>
 
+    <!-- Game Screen -->
     <div class="screen" id="gameScreen">
         <div class="game-info">
-            <div class="game-info-item"><div class="game-info-value" id="levelDisplay">1</div><div class="game-info-label">Уровень</div></div>
-            <div class="game-info-item"><div class="game-info-value" id="scoreDisplay">0</div><div class="game-info-label">Очки</div></div>
-            <div class="game-info-item"><div class="game-info-value" id="movesDisplay">20</div><div class="game-info-label">Ходы</div></div>
+            <div class="game-info-item">
+                <div class="game-info-value" id="levelDisplay">1</div>
+                <div class="game-info-label">Уровень</div>
+            </div>
+            <div class="game-info-item">
+                <div class="game-info-value" id="scoreDisplay">0</div>
+                <div class="game-info-label">Очки</div>
+            </div>
+            <div class="game-info-item">
+                <div class="game-info-value" id="movesDisplay">20</div>
+                <div class="game-info-label">Ходы</div>
+            </div>
         </div>
         <canvas id="gameCanvas" width="360" height="360"></canvas>
-        <div style="font-size: 12px; color: #c9a959; margin-top: 10px;" id="targetDisplay">Цель: 300 очков</div>
+        <div style="font-size: 12px; color: #c9a959; margin-top: 10px;" id="targetDisplay">Цель: 500 очков</div>
     </div>
 
+    <!-- Win Popup -->
     <div class="popup" id="winPopup">
         <div class="popup-content">
             <div style="font-size: 50px;">🎉</div>
             <div class="popup-title">Победа!</div>
             <div class="popup-text" id="winText">Ты прошёл уровень!</div>
             <button class="btn" id="nextLevelBtn">Следующий уровень →</button>
-            <button class="btn btn-secondary" id="winMenuBtn">В меню</button>
+            <button class="btn btn-secondary" id="winMenuBtn" style="margin-top: 10px;">В меню</button>
         </div>
     </div>
 
+    <!-- Lose Popup -->
     <div class="popup" id="losePopup">
         <div class="popup-content">
             <div style="font-size: 50px;">😢</div>
             <div class="popup-title">Не хватило!</div>
             <div class="popup-text">Попробуй ещё раз</div>
             <button class="btn" id="retryBtn">🔄 Заново</button>
-            <button class="btn btn-secondary" id="loseMenuBtn">В меню</button>
+            <button class="btn btn-secondary" id="loseMenuBtn" style="margin-top: 10px;">В меню</button>
         </div>
     </div>
 
-    <div class="shuffle-msg" id="shuffleMsg">🔀 Перемешиваем доску...</div>
-
-<script>
-// ========== ИГРОВАЯ ЛОГИКА ==========
-
-// Обычные иконки
-const ICONS = {
-    BERRY: '🍓', MUSHROOM: '🍄', FLOWER: '🌸', MATRYOSHKA: '🪆',
-    BALALAIKA: '🎸', KARAWAY: '🍞', BEAR: '🐻', FOX: '🦊'
-};
-const ICON_TYPES = Object.keys(ICONS);
-
-// Специальные иконки
-const SPECIAL = {
-    ROCKET_H: { emoji: '🚀', name: 'Ракета', color: '#ffd700', points: 50 },
-    ROCKET_V: { emoji: '🚀', name: 'Ракета', color: '#ffd700', points: 50 },
-    BOMB: { emoji: '💣', name: 'Бомба', color: '#ff4500', points: 75 },
-    DIAGONAL: { emoji: '✨', name: 'Диа-бомба', color: '#ff69b4', points: 100 }
-};
-const SPECIAL_TYPES = Object.keys(SPECIAL);
-
-function isSpecial(type) {
-    return SPECIAL_TYPES.includes(type);
-}
-
-function getEmoji(type) {
-    if (ICONS[type]) return ICONS[type];
-    if (SPECIAL[type]) return SPECIAL[type].emoji;
-    return '🍓';
-}
-
-function getPoints(type) {
-    if (ICONS[type]) return 10;
-    if (SPECIAL[type]) return SPECIAL[type].points;
-    return 10;
-}
-
-// Уровни
-const LEVELS = [
-    { id: 1, cols: 6, rows: 6, moves: 25, target: 300, name: 'Луг' },
-    { id: 2, cols: 6, rows: 6, moves: 24, target: 400, name: 'Опушка' },
-    { id: 3, cols: 7, rows: 6, moves: 23, target: 500, name: 'Лес' },
-    { id: 4, cols: 7, rows: 7, moves: 22, target: 600, name: 'Тропинка' },
-    { id: 5, cols: 7, rows: 7, moves: 21, target: 750, name: 'Ручей' },
-    { id: 6, cols: 7, rows: 7, moves: 20, target: 900, name: 'Мост' },
-    { id: 7, cols: 8, rows: 7, moves: 20, target: 1050, name: 'Поляна' },
-    { id: 8, cols: 8, rows: 7, moves: 19, target: 1200, name: 'Цветник' },
-    { id: 9, cols: 8, rows: 8, moves: 18, target: 1400, name: 'Ягодник' },
-    { id: 10, cols: 8, rows: 8, moves: 18, target: 1600, name: 'Грибное место' },
-    { id: 11, cols: 8, rows: 8, moves: 17, target: 1850, name: 'Древний дуб' },
-    { id: 12, cols: 9, rows: 8, moves: 17, target: 2100, name: 'Берёзовая роща' },
-    { id: 13, cols: 9, rows: 8, moves: 16, target: 2400, name: 'Кедровый бор' },
-    { id: 14, cols: 9, rows: 9, moves: 15, target: 2750, name: 'Верхушка горы' },
-    { id: 15, cols: 9, rows: 9, moves: 15, target: 3000, name: 'Царство Лесовика' }
-];
-
-// Состояние игры
-let game = {
-    level: null,
-    board: null,
-    score: 0,
-    movesLeft: 0,
-    target: 0,
-    selected: null,
-    isPlaying: true,
-    cellSize: 40,
-    boardOffset: { x: 0, y: 0 }
-};
-
-// ========== RENDERER ==========
-const Renderer = {
-    ctx: null,
-    cellSize: 40,
-    boardOffset: { x: 0, y: 0 },
-    
-    init() {
-        const canvas = document.getElementById('gameCanvas');
-        this.ctx = canvas.getContext('2d');
-    },
-    
-    setBoardSize(cols, rows, canvasSize) {
-        this.cellSize = Math.floor(canvasSize / Math.max(cols, rows));
-        this.boardOffset = {
-            x: (canvasSize - this.cellSize * cols) / 2,
-            y: (canvasSize - this.cellSize * rows) / 2
-        };
-    },
-    
-    clear() {
-        this.ctx.fillStyle = '#1a0a2e';
-        this.ctx.fillRect(0, 0, 360, 360);
-    },
-    
-    drawBoard() {
-        this.clear();
-        
-        const cols = game.level.cols;
-        const rows = game.level.rows;
-        this.ctx.fillStyle = 'rgba(45, 27, 78, 0.8)';
-        this.ctx.strokeStyle = '#8b5a2b';
-        this.ctx.lineWidth = 3;
-        
-        const boardWidth = this.cellSize * cols;
-        const boardHeight = this.cellSize * rows;
-        this.ctx.beginPath();
-        this.ctx.roundRect(this.boardOffset.x - 5, this.boardOffset.y - 5, boardWidth + 10, boardHeight + 10, 10);
-        this.ctx.fill();
-        this.ctx.stroke();
-        
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                if (game.board[r][c]) {
-                    this.drawCell(game.board[r][c], r, c);
-                }
-            }
-        }
-    },
-    
-    drawCell(type, row, col) {
-        const x = this.boardOffset.x + col * this.cellSize;
-        const y = this.boardOffset.y + row * this.cellSize;
-        const size = this.cellSize;
-        const padding = 2;
-        
-        // Фон в зависимости от типа
-        let bgColor = 'rgba(92, 61, 30, 0.6)';
-        if (type === 'ROCKET_H' || type === 'ROCKET_V') bgColor = 'rgba(255, 215, 0, 0.4)';
-        else if (type === 'BOMB') bgColor = 'rgba(255, 69, 0, 0.4)';
-        else if (type === 'DIAGONAL') bgColor = 'rgba(255, 105, 180, 0.4)';
-        
-        this.ctx.fillStyle = bgColor;
-        this.ctx.beginPath();
-        this.ctx.roundRect(x + padding, y + padding, size - padding * 2, size - padding * 2, 6);
-        this.ctx.fill();
-        
-        this.ctx.strokeStyle = '#5c3d1e';
-        this.ctx.lineWidth = 1;
-        this.ctx.stroke();
-        
-        // Иконка
-        const emoji = getEmoji(type);
-        const fontSize = size * 0.65;
-        this.ctx.font = `${fontSize}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`;
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'middle';
-        this.ctx.fillText(emoji, x + size / 2, y + size / 2);
-    },
-    
-    drawSelection(row, col) {
-        const x = this.boardOffset.x + col * this.cellSize;
-        const y = this.boardOffset.y + row * this.cellSize;
-        const size = this.cellSize;
-        const padding = 2;
-        
-        this.ctx.strokeStyle = '#ffd700';
-        this.ctx.lineWidth = 3;
-        this.ctx.setLineDash([5, 3]);
-        
-        this.ctx.beginPath();
-        this.ctx.roundRect(x + padding, y + padding, size - padding * 2, size - padding * 2, 6);
-        this.ctx.stroke();
-        
-        this.ctx.setLineDash([]);
-    }
-};
-
-// ========== SOUND SYSTEM ==========
-const Sound = {
-    enabled: true,
-    ctx: null,
-    
-    init() {
-        try {
-            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        } catch (e) {
-            console.log('Audio not supported');
-        }
-    },
-    
-    play(type) {
-        if (!this.enabled || !this.ctx) return;
-        
-        // Resume context if suspended
-        if (this.ctx.state === 'suspended') {
-            this.ctx.resume();
-        }
-        
-        const now = this.ctx.currentTime;
-        
-        if (type === 'select') {
-            this.playTone(440, 0.1, 'sine', 0.3);
-        } else if (type === 'match') {
-            this.playTone(523, 0.15, 'sine', 0.4);
-            setTimeout(() => this.playTone(659, 0.15, 'sine', 0.3), 100);
-        } else if (type === 'special') {
-            this.playTone(392, 0.2, 'square', 0.3);
-            setTimeout(() => this.playTone(523, 0.2, 'square', 0.3), 150);
-            setTimeout(() => this.playTone(784, 0.3, 'square', 0.4), 300);
-        } else if (type === 'win') {
-            this.playTone(523, 0.15, 'sine', 0.5);
-            setTimeout(() => this.playTone(659, 0.15, 'sine', 0.5), 100);
-            setTimeout(() => this.playTone(784, 0.15, 'sine', 0.5), 200);
-            setTimeout(() => this.playTone(1047, 0.4, 'sine', 0.6), 300);
-        } else if (type === 'lose') {
-            this.playTone(392, 0.3, 'sine', 0.4);
-            setTimeout(() => this.playTone(330, 0.4, 'sine', 0.3), 200);
-        } else if (type === 'swap') {
-            this.playTone(330, 0.08, 'triangle', 0.3);
-        }
-    },
-    
-    playTone(freq, duration, type, volume) {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        
-        osc.type = type;
-        osc.frequency.value = freq;
-        
-        gain.gain.setValueAtTime(volume, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
-        
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        
-        osc.start();
-        osc.stop(this.ctx.currentTime + duration);
-    },
-    
-    toggle() {
-        this.enabled = !this.enabled;
-        return this.enabled;
-    }
-};
-
-// ========== GAME LOGIC ==========
-function randomIcon() {
-    return ICON_TYPES[Math.floor(Math.random() * ICON_TYPES.length)];
-}
-
-function createBoard(cols, rows) {
-    const board = [];
-    for (let r = 0; r < rows; r++) {
-        board[r] = [];
-        for (let c = 0; c < cols; c++) {
-            board[r][c] = randomIcon();
-        }
-    }
-    // Убираем начальные матчи
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols - 2; c++) {
-            if (board[r][c] === board[r][c+1] && board[r][c] === board[r][c+2]) {
-                board[r][c+2] = randomIcon();
-            }
-        }
-    }
-    for (let c = 0; c < cols; c++) {
-        for (let r = 0; r < rows - 2; r++) {
-            if (board[r][c] === board[r+1][c] && board[r][c] === board[r+2][c]) {
-                board[r+2][c] = randomIcon();
-            }
-        }
-    }
-    return board;
-}
-
-function shuffleBoard() {
-    const rows = game.level.rows;
-    const cols = game.level.cols;
-    const cells = [];
-    
-    // Собираем все обычные иконки
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-            if (!isSpecial(game.board[r][c])) {
-                cells.push(game.board[r][c]);
-            }
-        }
-    }
-    
-    // Перемешиваем
-    for (let i = cells.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [cells[i], cells[j]] = [cells[j], cells[i]];
-    }
-    
-    // Распределяем обратно
-    let idx = 0;
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-            if (!isSpecial(game.board[r][c])) {
-                game.board[r][c] = cells[idx++];
-            }
-        }
-    }
-}
-
-function hasValidMoves() {
-    const rows = game.level.rows;
-    const cols = game.level.cols;
-    
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-            // Проверяем обмен с правым
-            if (c < cols - 1) {
-                const board = JSON.parse(JSON.stringify(game.board));
-                [board[r][c], board[r][c+1]] = [board[r][c+1], board[r][c]];
-                if (findMatchesOnBoard(board).length > 0) return true;
-            }
-            // Проверяем обмен с нижним
-            if (r < rows - 1) {
-                const board = JSON.parse(JSON.stringify(game.board));
-                [board[r][c], board[r+1][c]] = [board[r+1][c], board[r][c]];
-                if (findMatchesOnBoard(board).length > 0) return true;
-            }
-        }
-    }
-    return false;
-}
-
-function findMatchesOnBoard(board) {
-    const matches = [];
-    const rows = game.level.rows;
-    const cols = game.level.cols;
-    
-    // Горизонтальные
-    for (let r = 0; r < rows; r++) {
-        let start = 0;
-        for (let c = 1; c <= cols; c++) {
-            if (c < cols && board[r][c] === board[r][start] && board[r][start] && !isSpecial(board[r][start])) {
-                continue;
-            }
-            if (c - start >= 3) {
-                const cells = [];
-                for (let i = start; i < c; i++) cells.push({ row: r, col: i });
-                matches.push({ cells, length: c - start });
-            }
-            start = c;
-        }
-    }
-    
-    // Вертикальные
-    for (let c = 0; c < cols; c++) {
-        let start = 0;
-        for (let r = 1; r <= rows; r++) {
-            if (r < rows && board[r][c] === board[start][c] && board[start][c] && !isSpecial(board[start][c])) {
-                continue;
-            }
-            if (r - start >= 3) {
-                const cells = [];
-                for (let i = start; i < r; i++) cells.push({ row: i, col: c });
-                matches.push({ cells, length: r - start });
-            }
-            start = r;
-        }
-    }
-    
-    return matches;
-}
-
-function findMatches() {
-    return findMatchesOnBoard(game.board);
-}
-
-// Найти квадрат 2x2 одинаковых иконок
-function findSquares() {
-    const squares = [];
-    const rows = game.level.rows;
-    const cols = game.level.cols;
-    
-    for (let r = 0; r < rows - 1; r++) {
-        for (let c = 0; c < cols - 1; c++) {
-            const type = game.board[r][c];
-            if (type && !isSpecial(type) &&
-                game.board[r][c+1] === type &&
-                game.board[r+1][c] === type &&
-                game.board[r+1][c+1] === type) {
-                squares.push({
-                    cells: [
-                        { row: r, col: c },
-                        { row: r, col: c+1 },
-                        { row: r+1, col: c },
-                        { row: r+1, col: c+1 }
-                    ],
-                    center: { row: r, col: c }
-                });
-            }
-        }
-    }
-    return squares;
-}
-
-function removeMatches(matches, squares) {
-    const toRemove = new Set();
-    const specials = [];
-    
-    // Собираем клетки из обычных матчей
-    for (const match of matches) {
-        for (const cell of match.cells) {
-            toRemove.add(`${cell.row},${cell.col}`);
-        }
-    }
-    
-    // Собираем клетки из квадратов
-    for (const square of squares) {
-        for (const cell of square.cells) {
-            toRemove.add(`${cell.row},${cell.col}`);
-        }
-    }
-    
-    // Определяем какие специальные создать
-    const removeArr = Array.from(toRemove).map(k => {
-        const [r, c] = k.split(',').map(Number);
-        return { row: r, col: c };
-    });
-    
-    // 4+ в ряд = ракета
-    for (const match of matches) {
-        if (match.length >= 4) {
-            const center = match.cells[Math.floor(match.cells.length / 2)];
-            const type = match.length >= 5 ? 'BOMB' : (match.length === 4 ? 'ROCKET_H' : null);
-            if (type) {
-                specials.push({ row: center.row, col: center.col, type });
-            }
-        }
-    }
-    
-    // Квадрат = диагональная бомба
-    for (const square of squares) {
-        specials.push({ row: square.center.row, col: square.center.col, type: 'DIAGONAL' });
-    }
-    
-    // Удаляем клетки (кроме тех где будут специальные)
-    for (const key of toRemove) {
-        const [r, c] = key.split(',').map(Number);
-        const isSpecialCell = specials.some(s => s.row === r && s.col === c);
-        if (!isSpecialCell) {
-            const cellType = game.board[r][c];
-            game.score += getPoints(cellType);
-            game.board[r][c] = null;
-        }
-    }
-    
-    // Создаём специальные
-    for (const special of specials) {
-        game.board[special.row][special.col] = special.type;
-    }
-    
-    return specials.length > 0;
-}
-
-function activateSpecial(row, col) {
-    const type = game.board[row][col];
-    if (!type || !isSpecial(type)) return;
-    
-    const rows = game.level.rows;
-    const cols = game.level.cols;
-    const toRemove = [];
-    
-    if (type === 'ROCKET_H') {
-        // Горизонтальная ракета - взрывает всю строку
-        for (let c = 0; c < cols; c++) {
-            toRemove.push({ row, col: c });
-        }
-        game.score += cols * 15;
-    } else if (type === 'ROCKET_V') {
-        // Вертикальная ракета - взрывает весь столбец
-        for (let r = 0; r < rows; r++) {
-            toRemove.push({ row: r, col });
-        }
-        game.score += rows * 15;
-    } else if (type === 'BOMB') {
-        // Бомба - взрывает область 3x3
-        for (let dr = -1; dr <= 1; dr++) {
-            for (let dc = -1; dc <= 1; dc++) {
-                const r = row + dr;
-                const c = col + dc;
-                if (r >= 0 && r < rows && c >= 0 && c < cols) {
-                    toRemove.push({ row: r, col: c });
-                }
-            }
-        }
-        game.score += 9 * 20;
-    } else if (type === 'DIAGONAL') {
-        // Диагональная бомба - взрывает по диагоналям
-        for (let d = -Math.max(rows, cols); d <= Math.max(rows, cols); d++) {
-            if (row + d >= 0 && row + d < rows && col + d >= 0 && col + d < cols) {
-                toRemove.push({ row: row + d, col: col + d });
-            }
-            if (row + d >= 0 && row + d < rows && col - d >= 0 && col - d < cols) {
-                toRemove.push({ row: row + d, col: col - d });
-            }
-        }
-        game.score += 15 * 25;
-    }
-    
-    // Удаляем клетки
-    for (const cell of toRemove) {
-        if (game.board[cell.row][cell.col]) {
-            if (!isSpecial(game.board[cell.row][cell.col])) {
-                game.score += getPoints(game.board[cell.row][cell.col]);
-            }
-            game.board[cell.row][cell.col] = null;
-        }
-    }
-}
-
-function dropAndFill() {
-    const rows = game.level.rows;
-    const cols = game.level.cols;
-    
-    for (let c = 0; c < cols; c++) {
-        const cells = [];
-        for (let r = rows - 1; r >= 0; r--) {
-            if (game.board[r][c] !== null) {
-                cells.push(game.board[r][c]);
-            }
-        }
-        const fillCount = rows - cells.length;
-        for (let i = 0; i < fillCount; i++) {
-            cells.push(randomIcon());
-        }
-        for (let r = rows - 1; r >= 0; r--) {
-            game.board[r][c] = cells[rows - 1 - r];
-        }
-    }
-}
-
-async function processMatches() {
-    let loopCount = 0;
-    const maxLoops = 50;
-    let hasMatchSoundPlayed = false;
-    
-    while (loopCount < maxLoops) {
-        loopCount++;
-        
-        const matches = findMatches();
-        const squares = findSquares();
-        
-        if (matches.length === 0 && squares.length === 0) break;
-        
-        if (!hasMatchSoundPlayed) {
-            Sound.play('match');
-            hasMatchSoundPlayed = true;
-        }
-        
-        const hadSpecials = removeMatches(matches, squares);
-        if (hadSpecials) Sound.play('special');
-        
-        Renderer.drawBoard();
-        await delay(200);
-        
-        // Активируем все созданные специальные иконки
-        if (hadSpecials) {
-            const specials = [];
-            for (let r = 0; r < game.level.rows; r++) {
-                for (let c = 0; c < game.level.cols; c++) {
-                    if (isSpecial(game.board[r][c])) {
-                        specials.push({ row: r, col: c });
-                    }
-                }
-            }
-            for (const s of specials) {
-                activateSpecial(s.row, s.col);
-            }
-            Renderer.drawBoard();
-            await delay(200);
-        }
-        
-        dropAndFill();
-        Renderer.drawBoard();
-        await delay(200);
-        
-        // Проверяем есть ли ещё ходы
-        if (!hasValidMoves()) {
-            document.getElementById('shuffleMsg').classList.add('active');
-            await delay(1000);
-            shuffleBoard();
-            Renderer.drawBoard();
-            await delay(500);
-            document.getElementById('shuffleMsg').classList.remove('active');
-            
-            // Если всё ещё нет ходов, создаём новую доску
-            if (!hasValidMoves()) {
-                game.board = createBoard(game.level.cols, game.level.rows);
-                Renderer.drawBoard();
-            }
-        }
-    }
-}
-
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function tryMove(r1, c1, r2, c2) {
-    game.selected = null;
-    game.isPlaying = false;
-    
-    const temp = game.board[r1][c1];
-    game.board[r1][c1] = game.board[r2][c2];
-    game.board[r2][c2] = temp;
-    
-    Renderer.drawBoard();
-    Sound.play('swap');
-    await delay(150);
-    
-    const matches = findMatches();
-    const squares = findSquares();
-    
-    if (matches.length === 0 && squares.length === 0) {
-        game.board[r2][c2] = game.board[r1][c1];
-        game.board[r1][c1] = temp;
-        Renderer.drawBoard();
-        game.isPlaying = true;
-        return;
-    }
-    
-    game.movesLeft--;
-    updateUI();
-    
-    await processMatches();
-    updateUI();
-    
-    if (game.score >= game.target) {
-        Sound.play('win');
-        saveProgress();
-        document.getElementById('winText').textContent = `Очки: ${game.score}`;
-        document.getElementById('winPopup').classList.add('active');
-    } else if (game.movesLeft <= 0) {
-        Sound.play('lose');
-        document.getElementById('losePopup').classList.add('active');
-    } else {
-        game.isPlaying = true;
-    }
-}
-
-}
-
-}
-
-function updateUI() {
-    document.getElementById('levelDisplay').textContent = game.level.id;
-    document.getElementById('scoreDisplay').textContent = game.score;
-    document.getElementById('movesDisplay').textContent = game.movesLeft;
-    document.getElementById('targetDisplay').textContent = `Цель: ${game.target} очков`;
-}
-
-function saveProgress() {
-    const saved = localStorage.getItem('match3_progress');
-    const progress = saved ? JSON.parse(saved) : { completedLevels: [], totalScore: 0, gamesPlayed: 0 };
-    if (!progress.completedLevels.includes(game.level.id)) {
-        progress.completedLevels.push(game.level.id);
-        progress.totalScore += game.score;
-        progress.gamesPlayed = (progress.gamesPlayed || 0) + 1;
-    }
-    localStorage.setItem('match3_progress', JSON.stringify(progress));
-}
-
-function startLevel(levelId) {
+    <!-- Scripts -->
+    <script src="js/icons.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/levels.js"></script>
+    <script src="js/board.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>

@@ -1,260 +1,282 @@
-// Главная игровая логика
+// Главная игровая логика - минимальная стабильная версия
 
-const Game = {
-    currentLevel: 1,
+// Версия игры - автоматически генерируется при сборке
+const now = new Date();
+const GAME_VERSION = `1.${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+const BUILD_DATE = now.toISOString().replace('T', ' ').substring(0, 19);
+
+window.Game = {
+    level: null,
     score: 0,
-    moves: 0,
+    movesLeft: 0,
     target: 0,
-    isPlaying: false,
-    isAnimating: false,
-    selectedCell: null,
+    selected: null,
     board: null,
-    levelConfig: null,
-
-    // Инициализация игры
+    
     init() {
-        Renderer.init('gameCanvas');
-        initLevels();
-        UI.init();
-        this.setupCanvasEvents();
+        window.Renderer.init('gameCanvas');
+        window.initLevels();
+        window.UI.init();
+        
+        document.getElementById('gameCanvas').addEventListener('click', (e) => this.onClick(e));
+        
+        // Показываем версию на главном экране
+        const versionEl = document.getElementById('versionDisplay');
+        if (versionEl) {
+            versionEl.textContent = `Версия ${GAME_VERSION} (${BUILD_DATE})`;
+        }
     },
-
-    // Настройка событий canvas
-    setupCanvasEvents() {
-        const canvas = document.getElementById('gameCanvas');
-        canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
-    },
-
-    // Начать уровень
+    
     startLevel(levelId) {
-        this.currentLevel = levelId;
-        this.levelConfig = getLevel(levelId);
+        this.level = window.getLevel(levelId);
         this.score = 0;
-        this.moves = this.levelConfig.moves;
-        this.target = this.levelConfig.target;
-        this.isPlaying = true;
-        this.isAnimating = false;
-        this.selectedCell = null;
-
+        this.movesLeft = this.level.moves;
+        this.target = this.level.target;
+        this.selected = null;
+        
         // Инициализируем доску
-        Board.init(this.levelConfig.cols, this.levelConfig.rows);
-
-        // Устанавливаем размер canvas
+        this.board = this.createBoard(this.level.cols, this.level.rows);
+        
+        // Canvas размер
         const canvas = document.getElementById('gameCanvas');
-        const settings = Storage.getSettings();
+        const settings = window.Storage.getSettings();
         const size = settings.quality === 'low' ? 270 : 360;
         canvas.width = size;
         canvas.height = size;
-
-        Renderer.setBoardSize(this.levelConfig.cols, this.levelConfig.rows, size);
-        Renderer.drawBoard(Board);
-
-        // Обновляем UI
-        UI.updateGameDisplay(this.currentLevel, this.score, this.moves, this.target);
-
-        // Сохраняем текущий уровень
-        Storage.saveCurrentLevel(levelId);
+        
+        window.Renderer.setBoardSize(this.level.cols, this.level.rows, size);
+        this.render();
+        this.updateUI();
     },
-
-    // Обработка клика по canvas
-    handleCanvasClick(e) {
-        if (!this.isPlaying || this.isAnimating) return;
-
+    
+    createBoard(cols, rows) {
+        const board = [];
+        for (let r = 0; r < rows; r++) {
+            board[r] = [];
+            for (let c = 0; c < cols; c++) {
+                board[r][c] = this.randomCell();
+            }
+        }
+        // Убираем начальные матчи
+        this.removeInitialMatches(board, cols, rows);
+        return board;
+    },
+    
+    randomCell() {
+        const types = ['BERRY', 'MUSHROOM', 'FLOWER', 'MATRYOSHKA', 'BALALAIKA', 'KARAWAY', 'BEAR', 'FOX'];
+        return types[Math.floor(Math.random() * types.length)];
+    },
+    
+    removeInitialMatches(board, cols, rows) {
+        // Простая проверка - если есть 3 в ряд, меняем третью клетку
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols - 2; c++) {
+                if (board[r][c] === board[r][c+1] && board[r][c] === board[r][c+2]) {
+                    board[r][c+2] = this.randomCell();
+                }
+            }
+        }
+        for (let c = 0; c < cols; c++) {
+            for (let r = 0; r < rows - 2; r++) {
+                if (board[r][c] === board[r+1][c] && board[r][c] === board[r+2][c]) {
+                    board[r+2][c] = this.randomCell();
+                }
+            }
+        }
+    },
+    
+    onClick(e) {
         const rect = e.target.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-
-        // Вычисляем клетку
-        const col = Math.floor((x - Renderer.boardOffset.x) / Renderer.cellSize);
-        const row = Math.floor((y - Renderer.boardOffset.y) / Renderer.cellSize);
-
-        // Проверяем границы
-        if (row < 0 || row >= Board.rows || col < 0 || col >= Board.cols) return;
-
-        const clickedCell = Board.getCell(row, col);
-        if (!clickedCell) return;
-
-        // Если нет выбранной клетки - выбираем
-        if (!this.selectedCell) {
-            this.selectedCell = { row, col };
-            Renderer.drawBoard(Board);
-            Renderer.drawSelection(row, col);
-            return;
-        }
-
-        // Проверяем является ли кликнутая клетка соседней
-        const dr = Math.abs(row - this.selectedCell.row);
-        const dc = Math.abs(col - this.selectedCell.col);
-
-        if ((dr === 1 && dc === 0) || (dr === 0 && dc === 1)) {
-            // Пробуем сделать ход
-            this.makeMove(this.selectedCell.row, this.selectedCell.col, row, col);
-        } else if (row === this.selectedCell.row && col === this.selectedCell.col) {
-            // Кликнули на ту же клетку - снимаем выделение
-            this.selectedCell = null;
-            Renderer.drawBoard(Board);
+        
+        const cellSize = window.Renderer.cellSize;
+        const offset = window.Renderer.boardOffset;
+        
+        const col = Math.floor((x - offset.x) / cellSize);
+        const row = Math.floor((y - offset.y) / cellSize);
+        
+        if (row < 0 || row >= this.level.rows || col < 0 || col >= this.level.cols) return;
+        
+        if (this.selected === null) {
+            this.selected = { row, col };
+            this.render();
+            window.Renderer.drawSelection(row, col);
         } else {
-            // Выбираем новую клетку
-            this.selectedCell = { row, col };
-            Renderer.drawBoard(Board);
-            Renderer.drawSelection(row, col);
+            const dr = Math.abs(row - this.selected.row);
+            const dc = Math.abs(col - this.selected.col);
+            
+            if ((dr === 1 && dc === 0) || (dr === 0 && dc === 1)) {
+                this.tryMove(this.selected.row, this.selected.col, row, col);
+            } else {
+                this.selected = { row, col };
+                this.render();
+                window.Renderer.drawSelection(row, col);
+            }
         }
     },
-
-    // Сделать ход
-    async makeMove(row1, col1, row2, col2) {
-        this.isAnimating = true;
-        this.selectedCell = null;
-
-        // Меняем клетки местами
-        Board.swap(row1, col1, row2, col2);
-
+    
+    async tryMove(r1, c1, r2, c2) {
+        this.selected = null;
+        
+        // Меняем местами
+        const temp = this.board[r1][c1];
+        this.board[r1][c1] = this.board[r2][c2];
+        this.board[r2][c2] = temp;
+        
+        this.render();
+        await this.delay(150);
+        
         // Проверяем матчи
-        const matches = Board.findMatches();
-
+        const matches = this.findMatches();
+        
         if (matches.length === 0) {
-            // Нет матчей - возвращаем обратно
-            await this.animateSwap(row1, col1, row2, col2, true);
-            Board.swap(row1, col1, row2, col2);
-            Renderer.drawBoard(Board);
-            this.isAnimating = false;
+            // Возвращаем обратно
+            this.board[r2][c2] = this.board[r1][c1];
+            this.board[r1][c1] = temp;
+            this.render();
             return;
         }
-
+        
         // Есть матчи!
-        await this.animateSwap(row1, col1, row2, col2, false);
-
-        // Уменьшаем ходы
-        this.moves--;
-        UI.updateGameDisplay(this.currentLevel, this.score, this.moves, this.target);
-
-        // Обрабатываем матчи
-        await this.processMatches();
-
-        // Проверяем условия победы/поражения
-        this.checkGameEnd();
-
-        this.isAnimating = false;
+        this.movesLeft--;
+        this.updateUI();
+        
+        await this.handleMatches(matches);
+        
+        // Проверяем конец игры
+        if (this.score >= this.target) {
+            window.UI.showWinPopup(this.score);
+        } else if (this.movesLeft <= 0) {
+            window.UI.showLosePopup();
+        }
     },
-
-    // Анимация обмена
-    animateSwap(row1, col1, row2, col2, reverse) {
-        return new Promise(resolve => {
-            // Простая анимация - просто ждём и рисуем
-            Renderer.drawBoard(Board);
-            setTimeout(resolve, 200);
-        });
-    },
-
-    // Обработка матчей
-    async processMatches() {
-        let matches = Board.findMatches();
-
-        while (matches.length > 0) {
-            // Собираем все клетки для удаления
-            let allCellsToRemove = [];
-            let specialCells = [];
-
-            for (const match of matches) {
-                const result = Board.processMatches(match);
-                allCellsToRemove.push(...result.cellsToRemove);
-
-                // Обрабатываем специальные иконки
-                for (const special of result.specialCreated) {
-                    specialCells.push(special);
+    
+    findMatches() {
+        const matches = [];
+        const rows = this.level.rows;
+        const cols = this.level.cols;
+        
+        // Горизонтальные
+        for (let r = 0; r < rows; r++) {
+            let start = 0;
+            for (let c = 1; c <= cols; c++) {
+                if (c < cols && this.board[r][c] === this.board[r][start]) {
+                    continue;
                 }
+                if (c - start >= 3) {
+                    const cells = [];
+                    for (let i = start; i < c; i++) cells.push({ row: r, col: i });
+                    matches.push({ cells, length: c - start });
+                }
+                start = c;
             }
-
-            // Удаляем обычные клетки с анимацией
-            const removedCells = Board.removeCells(allCellsToRemove);
-            for (const cell of removedCells) {
-                const icon = getIcon(cell.type);
-                this.score += icon.points;
-                Renderer.drawScorePopup(cell.row, cell.col, icon.points);
-            }
-
-            // Активируем специальные способности
-            for (const special of specialCells) {
-                await this.activateSpecial(special.row, special.col);
-            }
-
-            // Перерисовываем и ждём
-            Renderer.drawBoard(Board);
-            await this.delay(200);
-
-            // Сдвигаем клетки вниз
-            const drops = Board.dropCells();
-            Renderer.drawBoard(Board);
-            await this.delay(200);
-
-            // Проверяем новые матчи
-            matches = Board.findMatches();
-
-            // Обновляем счёт
-            UI.updateGameDisplay(this.currentLevel, this.score, this.moves, this.target);
         }
-
-        // Проверяем возможность хода
-        if (!Board.hasValidMoves()) {
-            // Перемешиваем доску
-            Board.init(this.levelConfig.cols, this.levelConfig.rows);
-            Renderer.drawBoard(Board);
+        
+        // Вертикальные
+        for (let c = 0; c < cols; c++) {
+            let start = 0;
+            for (let r = 1; r <= rows; r++) {
+                if (r < rows && this.board[r][c] === this.board[start][c]) {
+                    continue;
+                }
+                if (r - start >= 3) {
+                    const cells = [];
+                    for (let i = start; i < r; i++) cells.push({ row: i, col: c });
+                    matches.push({ cells, length: r - start });
+                }
+                start = r;
+            }
         }
+        
+        return matches;
     },
-
-    // Активировать специальную способность
-    async activateSpecial(row, col) {
-        const result = Board.activateSpecial(row, col);
-        let bonusScore = result.score;
-
-        // Удаляем клетки
-        Board.removeCells(result.cells);
-        Renderer.drawBoard(Board);
-
-        // Анимация взрыва
-        for (const cell of result.cells) {
-            Renderer.drawExplosion(cell.row, cell.col, 'rgb(255, 200, 0)', null);
+    
+    async handleMatches(matches) {
+        // Собираем все клетки для удаления
+        const toRemove = [];
+        for (const match of matches) {
+            for (const cell of match.cells) {
+                toRemove.push(`${cell.row},${cell.col}`);
+            }
+        }
+        
+        // Уникальные
+        const unique = [...new Set(toRemove)].map(s => {
+            const [r, c] = s.split(',').map(Number);
+            return { row: r, col: c };
+        });
+        
+        // Удаляем и считаем очки
+        for (const { row, col } of unique) {
             this.score += 10;
         }
-
-        this.score += bonusScore;
-        UI.updateGameDisplay(this.currentLevel, this.score, this.moves, this.target);
-
-        await this.delay(300);
-    },
-
-    // Проверить конец игры
-    checkGameEnd() {
-        if (this.score >= this.target) {
-            // Победа!
-            this.isPlaying = false;
-            Storage.completeLevel(this.currentLevel, this.score);
-            UI.showWinPopup(this.score);
-        } else if (this.moves <= 0) {
-            // Поражение
-            this.isPlaying = false;
-            UI.showLosePopup();
+        
+        // Удаляем клетки (ставим null)
+        for (const { row, col } of unique) {
+            this.board[row][col] = null;
+        }
+        
+        this.render();
+        this.updateUI();
+        await this.delay(200);
+        
+        // Падаем и заполняем
+        this.dropAndFill();
+        this.render();
+        await this.delay(200);
+        
+        // Проверяем каскад
+        const newMatches = this.findMatches();
+        if (newMatches.length > 0) {
+            await this.handleMatches(newMatches);
         }
     },
-
-    // Пауза
-    pause() {
-        this.isPlaying = false;
+    
+    dropAndFill() {
+        const rows = this.level.rows;
+        const cols = this.level.cols;
+        
+        for (let c = 0; c < cols; c++) {
+            // Собираем не-null клетки
+            const cells = [];
+            for (let r = rows - 1; r >= 0; r--) {
+                if (this.board[r][c] !== null) {
+                    cells.push(this.board[r][c]);
+                }
+            }
+            
+            // Заполняем сверху новыми
+            const fillCount = rows - cells.length;
+            for (let i = 0; i < fillCount; i++) {
+                cells.push(this.randomCell());
+            }
+            
+            // Кладём обратно снизу вверх
+            for (let r = rows - 1; r >= 0; r--) {
+                this.board[r][c] = cells[rows - 1 - r];
+            }
+        }
     },
-
-    // Возобновить
-    resume() {
-        this.isPlaying = true;
+    
+    render() {
+        window.Renderer.drawBoard({
+            data: this.board,
+            rows: this.level.rows,
+            cols: this.level.cols,
+            getCell: (r, c) => this.board[r] && this.board[r][c] !== null ? 
+                { type: this.board[r][c], row: r, col: c } : null
+        });
     },
-
-    // Задержка
+    
+    updateUI() {
+        document.getElementById('scoreDisplay').textContent = this.score;
+        document.getElementById('movesDisplay').textContent = this.movesLeft;
+    },
+    
     delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 };
 
-// Инициализация при загрузке
-document.addEventListener('DOMContentLoaded', () => Game.init());
-
-// Экспорт
-window.Game = Game;
+document.addEventListener('DOMContentLoaded', () => window.Game.init());

@@ -167,9 +167,13 @@ function findMatches(board, cols, rows) {
 
     // Горизонтальные матчи
     for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols - 2; col++) {
+        let col = 0;
+        while (col < cols - 2) {
             const type = board[row][col].type;
-            if (!type) continue;
+            if (!type) {
+                col++;
+                continue;
+            }
 
             let matchLength = 1;
             while (col + matchLength < cols && board[row][col + matchLength].type === type) {
@@ -192,16 +196,22 @@ function findMatches(board, cols, rows) {
                 if (match.cells.length > 0) {
                     matches.push(match);
                 }
-                col += matchLength - 1;
+                col += matchLength; // Move past the entire match
+            } else {
+                col++;
             }
         }
     }
 
     // Вертикальные матчи
     for (let col = 0; col < cols; col++) {
-        for (let row = 0; row < rows - 2; row++) {
+        let row = 0;
+        while (row < rows - 2) {
             const type = board[row][col].type;
-            if (!type) continue;
+            if (!type) {
+                row++;
+                continue;
+            }
 
             let matchLength = 1;
             while (row + matchLength < rows && board[row + matchLength][col].type === type) {
@@ -224,7 +234,9 @@ function findMatches(board, cols, rows) {
                 if (match.cells.length > 0) {
                     matches.push(match);
                 }
-                row += matchLength - 1;
+                row += matchLength; // Move past the entire match
+            } else {
+                row++;
             }
         }
     }

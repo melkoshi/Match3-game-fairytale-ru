@@ -1,5 +1,10 @@
 // Главная игровая логика - минимальная стабильная версия
 
+// Версия игры - автоматически генерируется при сборке
+const now = new Date();
+const GAME_VERSION = `1.${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+const BUILD_DATE = now.toISOString().replace('T', ' ').substring(0, 19);
+
 window.Game = {
     level: null,
     score: 0,
@@ -14,6 +19,12 @@ window.Game = {
         window.UI.init();
         
         document.getElementById('gameCanvas').addEventListener('click', (e) => this.onClick(e));
+        
+        // Показываем версию на главном экране
+        const versionEl = document.getElementById('versionDisplay');
+        if (versionEl) {
+            versionEl.textContent = `Версия ${GAME_VERSION} (${BUILD_DATE})`;
+        }
     },
     
     startLevel(levelId) {
