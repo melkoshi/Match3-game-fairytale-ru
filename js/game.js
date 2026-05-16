@@ -176,6 +176,8 @@ window.Game = {
         // Проверяем конец игры
         if (this.score >= this.target) {
             window.Sound.play('win');
+            // Сохраняем прогресс
+            window.Storage.completeLevel(this.currentLevel);
             window.UI.showWinPopup(this.score);
         } else if (this.movesLeft <= 0) {
             window.Sound.play('lose');
@@ -563,8 +565,10 @@ window.Game = {
     },
     
     updateUI() {
+        document.getElementById('levelDisplay').textContent = this.currentLevel || this.level.id;
         document.getElementById('scoreDisplay').textContent = this.score;
         document.getElementById('movesDisplay').textContent = this.movesLeft;
+        document.getElementById('targetDisplay').textContent = `Цель: ${this.target} очков`;
     },
     
     delay(ms) {
