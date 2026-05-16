@@ -4,7 +4,7 @@ const ICONS = {
     // Основные иконки (обычные)
     BERRY: { emoji: '🍓', image: 'media/icons/berry.png', name: 'Ягода', color: '#ff6b6b', points: 10 },
     MUSHROOM: { emoji: '🍄', image: 'media/icons/mushroom.png', name: 'Гриб', color: '#c9a959', points: 10 },
-    FLOWER: { emoji: '🌸', image: 'media/icons/flower.png', name: 'Цветок', color: '#ff9ff3', points: 10 },
+    FLOWER: { emoji: '🍞', image: 'media/icons/flower.png', name: 'Колобок', color: '#deb887', points: 10 },
     MATRYOSHKA: { emoji: '🪆', image: 'media/icons/matryoshka.png', name: 'Матрёшка', color: '#ee5a5a', points: 10 },
     BALALAIKA: { emoji: '🎸', image: 'media/icons/balalaika.png', name: 'Балалайка', color: '#8b5a2b', points: 10 },
     KARAWAY: { emoji: '🦎', image: 'media/icons/karawai.png', name: 'Ящер', color: '#7cfc00', points: 10 },
