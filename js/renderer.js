@@ -157,8 +157,10 @@ const Renderer = {
         this.ctx.roundRect(x + padding, y + padding, imgSize, imgSize, 4);
         this.ctx.stroke();
         
-        // Рисуем картинку
-        this.ctx.drawImage(img, x + padding, y + padding, imgSize, imgSize);
+        // Рисуем картинку только когда она загружена
+        if (img.complete && img.naturalWidth > 0) {
+            this.ctx.drawImage(img, x + padding, y + padding, imgSize, imgSize);
+        }
     },
 
     // Эффект заморозки
