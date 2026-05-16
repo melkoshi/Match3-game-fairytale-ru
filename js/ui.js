@@ -38,6 +38,13 @@ const UI = {
         document.getElementById('winMenuBtn').addEventListener('click', () => this.returnToMenu());
         document.getElementById('retryBtn').addEventListener('click', () => this.retryLevel());
         document.getElementById('loseMenuBtn').addEventListener('click', () => this.returnToMenu());
+        
+        // Подсказка
+        document.getElementById('hintBtn').addEventListener('click', () => {
+            if (window.Game) {
+                window.Game.showHint();
+            }
+        });
     },
 
     // Показать экран

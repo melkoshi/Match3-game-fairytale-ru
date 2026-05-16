@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1705260130';
-const BUILD_DATE = '2026-05-17 01:30';
+const GAME_VERSION = '1.1705260200';
+const BUILD_DATE = '2026-05-17 02:00';
 
 window.Game = {
     level: null,
@@ -586,7 +586,74 @@ window.Game = {
         return false;
     },
     
-    // Перемешать доску
+    // Найти возможный ход (для подсказки)
+    findHint() {
+        const rows = this.level.rows;
+        const cols = this.level.cols;
+        
+        // Проверяем горизонтальные соседства
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols - 1; c++) {
+                if (this.board[r][c] && this.board[r][c+1]) {
+                    const type1 = this.board[r][c].type;
+                    const type2 = this.board[r][c+1].type;
+                    if (type1 && type2 && !isSpecialIcon(type1) && !isSpecialIcon(type2)) {
+                        // Меняем местами
+                        this.board[r][c] = this.board[r][c+1];
+                        this.board[r][c+1] = { type: type1 };
+                        
+                        const matches = this.findMatches();
+                        const squares = this.findSquares();
+                        
+                        // Возвращаем обратно
+                        this.board[r][c+1] = this.board[r][c];
+                        this.board[r][c] = { type: type2 };
+                        
+                        if (matches.length > 0 || squares.length > 0) {
+                            return { row1: r, col1: c, row2: r, col2: c + 1 };
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Проверяем вертикальные соседства
+        for (let r = 0; r < rows - 1; r++) {
+            for (let c = 0; c < cols; c++) {
+                if (this.board[r][c] && this.board[r+1][c]) {
+                    const type1 = this.board[r][c].type;
+                    const type2 = this.board[r+1][c].type;
+                    if (type1 && type2 && !isSpecialIcon(type1) && !isSpecialIcon(type2)) {
+                        // Меняем местами
+                        this.board[r][c] = this.board[r+1][c];
+                        this.board[r+1][c] = { type: type1 };
+                        
+                        const matches = this.findMatches();
+                        const squares = this.findSquares();
+                        
+                        // Возвращаем обратно
+                        this.board[r+1][c] = this.board[r][c];
+                        this.board[r][c] = { type: type2 };
+                        
+                        if (matches.length > 0 || squares.length > 0) {
+                            return { row1: r, col1: c, row2: r + 1, col2: c };
+                        }
+                    }
+                }
+            }
+        }
+        
+        return null; // Нет возможных ходов
+    },
+    
+    // Показать подсказку
+    showHint() {
+        const hint = this.findHint();
+        if (hint) {
+            this.vibrate(50);
+            Renderer.drawHint(hint.row1, hint.col1, hint.row2, hint.col2);
+        }
+    },
     shuffleBoard() {
         const rows = this.level.rows;
         const cols = this.level.cols;
