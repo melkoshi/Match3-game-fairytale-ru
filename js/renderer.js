@@ -145,8 +145,6 @@ const Renderer = {
     // Нарисовать иконку (картинка с обводкой)
     drawIcon(type, x, y, size) {
         const icon = getIcon(type);
-        const img = new Image();
-        img.src = icon.image;
         const padding = 2;
         const imgSize = size - padding * 2;
         
@@ -161,8 +159,25 @@ const Renderer = {
         this.ctx.imageSmoothingEnabled = true;
         this.ctx.imageSmoothingQuality = 'high';
         
-        // Рисуем картинку
-        this.ctx.drawImage(img, x + padding, y + padding, imgSize, imgSize);
+        // Пробуем загруженную картинку из кеша
+        let img = getIconImage(type);
+        
+        // Fallback: если картинки нет в кеше, загружаем напрямую
+        if (!img || !img.complete || img.naturalWidth === 0) {
+            img = new Image();
+            img.src = icon.image;
+        }
+        
+        // Рисуем картинку если загружена
+        if (img && img.complete && img.naturalWidth > 0) {
+            this.ctx.drawImage(img, x + padding, y + padding, imgSize, imgSize);
+        } else {
+            // Fallback на emoji пока картинка грузится
+            this.ctx.font = `${size * 0.65}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`;
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillText(icon.emoji || '?', x + size / 2, y + size / 2);
+        }
     },
 
     // Эффект заморозки
