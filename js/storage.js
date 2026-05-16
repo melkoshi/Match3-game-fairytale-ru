@@ -84,7 +84,7 @@ const Storage = {
             music: true,
             quality: 'high',
             soundVolume: 0.3,
-            musicVolume: 0.1
+            musicVolume: 0.02
         };
     },
 
