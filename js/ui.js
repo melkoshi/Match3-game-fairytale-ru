@@ -28,22 +28,6 @@ const UI = {
             btn.addEventListener('click', () => this.handleSettingClick(btn));
         });
         document.getElementById('resetProgress').addEventListener('click', () => this.resetProgress());
-        
-        // Слайдеры громкости
-        const soundVolEl = document.getElementById('soundVolume');
-        if (soundVolEl) {
-            soundVolEl.addEventListener('input', (e) => {
-                const vol = e.target.value / 100;
-                window.Sound.setVolume(vol);
-            });
-        }
-        const musicVolEl = document.getElementById('musicVolume');
-        if (musicVolEl) {
-            musicVolEl.addEventListener('input', (e) => {
-                const vol = e.target.value / 100;
-                window.Music.setVolume(vol);
-            });
-        }
 
         // Шапка
         document.getElementById('menuBtn').addEventListener('click', () => this.showScreen('settingsScreen'));
@@ -152,8 +136,8 @@ const UI = {
         // Звук
         this.updateSettingButtons('sound', settings.sound ? 'on' : 'off');
         window.Sound.setEnabled(settings.sound);
-        const soundVolEl = document.getElementById('soundVolume');
-        if (soundVolEl) soundVolEl.value = (settings.soundVolume || 0.5) * 100;
+        this.updateSettingButtons('soundVol', settings.soundVolume ? String(settings.soundVolume) : '0.3');
+        window.Sound.setVolume(settings.soundVolume || 0.3);
 
         // Качество
         this.updateSettingButtons('quality', settings.quality);
@@ -161,8 +145,8 @@ const UI = {
         // Музыка
         this.updateSettingButtons('music', settings.music ? 'on' : 'off');
         window.Music.setEnabled(settings.music);
-        const musicVolEl = document.getElementById('musicVolume');
-        if (musicVolEl) musicVolEl.value = (settings.musicVolume || 0.05) * 100;
+        this.updateSettingButtons('musicVol', settings.musicVolume ? String(settings.musicVolume) : '0.1');
+        window.Music.setVolume(settings.musicVolume || 0.1);
     },
 
     // Обновить кнопки настроек
@@ -193,6 +177,12 @@ const UI = {
             window.Sound.setEnabled(actualValue);
         } else if (setting === 'music') {
             window.Music.setEnabled(actualValue);
+        } else if (setting === 'soundVol') {
+            const vol = parseFloat(value);
+            window.Sound.setVolume(vol);
+        } else if (setting === 'musicVol') {
+            const vol = parseFloat(value);
+            window.Music.setVolume(vol);
         }
     },
 
