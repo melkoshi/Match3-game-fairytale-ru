@@ -147,19 +147,20 @@ const Renderer = {
         const icon = getIcon(type);
         const img = new Image();
         img.src = icon.image;
-        const padding = size * 0.08;
+        const padding = size * 0.05;
         const imgSize = size - padding * 2;
+        const offset = (size - imgSize) / 2;
         
         // Рисуем обводку (деревянный цвет)
         this.ctx.strokeStyle = '#5c3d1e';
-        this.ctx.lineWidth = 2;
+        this.ctx.lineWidth = 1;
         this.ctx.beginPath();
-        this.ctx.roundRect(x + padding, y + padding, imgSize, imgSize, 4);
+        this.ctx.roundRect(x + padding, y + padding, imgSize, imgSize, 3);
         this.ctx.stroke();
         
         // Рисуем картинку только когда она загружена
         if (img.complete && img.naturalWidth > 0) {
-            this.ctx.drawImage(img, x + padding, y + padding, imgSize, imgSize);
+            this.ctx.drawImage(img, x + offset, y + offset, imgSize, imgSize);
         }
     },
 
