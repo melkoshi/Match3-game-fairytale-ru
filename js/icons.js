@@ -17,6 +17,44 @@ const ICONS = {
     DIAGONAL: { emoji: '✨', image: 'media/icons/diagonal.png', name: 'Диа-бомба', color: '#ff69b4', points: 100, special: 'star' }
 };
 
+// Кеш загруженных изображений
+const iconImages = {};
+
+// Загрузить все иконки
+function loadIcons(callback) {
+    let loaded = 0;
+    const total = Object.keys(ICONS).length;
+    
+    if (total === 0) {
+        if (callback) callback();
+        return;
+    }
+    
+    for (const type in ICONS) {
+        const img = new Image();
+        img.src = ICONS[type].image;
+        img.onload = () => {
+            iconImages[type] = img;
+            loaded++;
+            if (loaded >= total && callback) {
+                callback();
+            }
+        };
+        img.onerror = () => {
+            console.warn('Failed to load icon:', ICONS[type].image);
+            loaded++;
+            if (loaded >= total && callback) {
+                callback();
+            }
+        };
+    }
+}
+
+// Получить загруженное изображение
+function getIconImage(type) {
+    return iconImages[type];
+}
+
 // Типы иконок для обычной игры (без специальных)
 const NORMAL_ICONS = ['BERRY', 'MUSHROOM', 'FLOWER', 'MATRYOSHKA', 'BALALAIKA', 'KARAWAY', 'BEAR', 'FOX'];
 
@@ -54,3 +92,5 @@ window.getRandomIcon = getRandomIcon;
 window.isSpecialIcon = isSpecialIcon;
 window.getSpecialType = getSpecialType;
 window.getEmoji = getEmoji;
+window.loadIcons = loadIcons;
+window.getIconImage = getIconImage;
