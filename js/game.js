@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1705262010';
-const BUILD_DATE = '2026-05-17 20:10';
+const GAME_VERSION = '1.1705262020';
+const BUILD_DATE = '2026-05-17 20:20';
 
 window.Game = {
     level: null,
@@ -533,121 +533,30 @@ window.Game = {
         await this.delay(200);
     },
     
-    async dropAndFill() {
+    dropAndFill() {
         const rows = this.level.rows;
         const cols = this.level.cols;
-        const fallDuration = 200; // Длительность падения одной клетки
-        
-        // Собираем данные о падении для анимации
-        const fallData = []; // { fromRow, toRow, col, type, isNew }
         
         for (let c = 0; c < cols; c++) {
-            // Собираем не-null клетки (они уже "упали" вниз после очистки)
-            const existingCells = [];
+            // Собираем не-null клетки
+            const cells = [];
             for (let r = rows - 1; r >= 0; r--) {
                 if (this.board[r][c] !== null) {
-                    existingCells.push({ type: this.board[r][c].type, row: r });
+                    cells.push(this.board[r][c]);
                 }
             }
             
-            // Сколько новых клеток нужно создать
-            const fillCount = rows - existingCells.length;
-            
-            // Существующие клетки падают на освободившиеся места
-            for (let i = 0; i < existingCells.length; i++) {
-                const cellInfo = existingCells[i];
-                const toRow = rows - 1 - i; // Куда клетка попадает (снизу вверх)
-                const fromRow = rows + fillCount + i; // Откуда падает (выше верха доски = анимация сверху)
-                
-                fallData.push({
-                    col: c,
-                    toRow: toRow,
-                    fromRow: fromRow,
-                    type: cellInfo.type,
-                    isNew: false
-                });
-            }
-            
-            // Новые клетки падают с самого верха
+            // Заполняем сверху новыми
+            const fillCount = rows - cells.length;
             for (let i = 0; i < fillCount; i++) {
-                const toRow = rows - 1 - existingCells.length - i;
-                const fromRow = rows + i; // Падает с позиции выше верха
-                
-                fallData.push({
-                    col: c,
-                    toRow: toRow,
-                    fromRow: fromRow,
-                    type: this.randomCell(),
-                    isNew: true
-                });
+                cells.push({ type: this.randomCell() });
             }
-        }
-        
-        // Обновляем доску с новыми данными
-        for (const fall of fallData) {
-            this.board[fall.toRow][fall.col] = { type: fall.type };
-        }
-        
-        // Анимация падения
-        await this.animateFalling(fallData, fallDuration);
-    },
-    
-    async animateFalling(fallData, duration) {
-        const startTime = performance.now();
-        
-        // Создаём копию доски для анимации
-        const animBoard = JSON.parse(JSON.stringify(this.board));
-        
-        return new Promise(resolve => {
-            const animate = (currentTime) => {
-                const elapsed = currentTime - startTime;
-                let stillAnimating = false;
-                
-                // Для каждой клетки вычисляем прогресс
-                for (const fall of fallData) {
-                    const progress = Math.min(elapsed / duration, 1);
-                    // easeOut cubic для плавной остановки
-                    const eased = 1 - Math.pow(1 - progress, 3);
-                    // От 1 (сверху) до 0 (внизу)
-                    const yOffset = 1 - eased;
-                    animBoard[fall.toRow][fall.col] = { type: fall.type, yOffset: yOffset };
-                    
-                    if (progress < 1) stillAnimating = true;
-                }
-                
-                // Рисуем
-                this.drawAnimatedBoard(animBoard);
-                
-                if (stillAnimating) {
-                    requestAnimationFrame(animate);
-                } else {
-                    // Анимация завершена - рисуем обычную доску
-                    this.render();
-                    resolve();
-                }
-            };
             
-            requestAnimationFrame(animate);
-        });
-    },
-    
-    drawAnimatedBoard(animBoard) {
-        // Рисуем доску с анимацией
-        window.Renderer.drawAnimatedBoard({
-            data: animBoard,
-            rows: this.level.rows,
-            cols: this.level.cols,
-            getCell: (r, c) => {
-                const cell = animBoard[r] && animBoard[r][c];
-                if (!cell || !cell.type) return null;
-                return { 
-                    type: cell.type, 
-                    row: r, 
-                    col: c, 
-                    yOffset: cell.yOffset || 0 
-                };
+            // Кладём обратно снизу вверх
+            for (let r = rows - 1; r >= 0; r--) {
+                this.board[r][c] = cells[rows - 1 - r];
             }
-        });
+        }
     },
     
     // Проверить есть ли валидные ходы
