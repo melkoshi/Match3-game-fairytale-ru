@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1705261110';
-const BUILD_DATE = '2026-05-17 11:10';
+const GAME_VERSION = '1.1705261130';
+const BUILD_DATE = '2026-05-17 11:30';
 
 window.Game = {
     level: null,
@@ -244,10 +244,12 @@ window.Game = {
         // Если есть специальная иконка - активируем её
         const specialsToActivate = [];
         if (sourceSpecial) {
-            specialsToActivate.push({ row: r1, col: c1, type: sourceSpecial });
+            // sourceSpecial активируется на позиции r2,c2 (куда попала после свопа)
+            specialsToActivate.push({ row: r2, col: c2, type: sourceSpecial });
         }
         if (destSpecial) {
-            specialsToActivate.push({ row: r2, col: c2, type: destSpecial });
+            // destSpecial активируется на позиции r1,c1 (куда попала после свопа)
+            specialsToActivate.push({ row: r1, col: c1, type: destSpecial });
         }
         if (specialsToActivate.length > 0) {
             window.Sound.play('special');
