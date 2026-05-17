@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1705261945';
-const BUILD_DATE = '2026-05-17 19:45';
+const GAME_VERSION = '1.1705262005';
+const BUILD_DATE = '2026-05-17 20:05';
 
 window.Game = {
     level: null,
@@ -536,43 +536,59 @@ window.Game = {
     async dropAndFill() {
         const rows = this.level.rows;
         const cols = this.level.cols;
-        const fallDuration = 150; // Длительность падения одной клетки
+        const fallDuration = 200; // Длительность падения одной клетки
         
         // Собираем данные о падении для анимации
-        const fallData = []; // { fromRow, toRow, col, type, delay }
+        const fallData = []; // { fromRow, toRow, col, type, isNew, delay }
         
         for (let c = 0; c < cols; c++) {
-            // Собираем не-null клетки и считаем сколько нужно добавть сверху
-            const cells = [];
+            // Собираем не-null клетки (они уже "упали" вниз после очистки)
+            const existingCells = [];
             for (let r = rows - 1; r >= 0; r--) {
                 if (this.board[r][c] !== null) {
-                    cells.push(this.board[r][c]);
+                    existingCells.push({ type: this.board[r][c].type, row: r });
                 }
             }
             
-            const fillCount = rows - cells.length;
+            // Сколько новых клеток нужно создать
+            const fillCount = rows - existingCells.length;
             
-            // Заполняем сверху новыми
-            for (let i = 0; i < fillCount; i++) {
-                cells.push({ type: this.randomCell(), isNew: true });
-            }
-            
-            // Распределяем обратно и записываем данные для анимации
-            for (let r = rows - 1; r >= 0; r--) {
-                const cellData = cells[rows - 1 - r];
-                const fromRow = r + 1; // Откуда падает (на 1 больше для начала анимации)
-                const delay = c * 50; // Задержка для каждой колонки
+            // Новые клетки падают сверху, существующие падают на освободившиеся места
+            // Для каждой существующей клетки считаем откуда она падает
+            for (let i = 0; i < existingCells.length; i++) {
+                const cellInfo = existingCells[i];
+                const toRow = rows - 1 - i; // Куда клетка попадает (снизу вверх)
+                const fromRow = rows + fillCount + i; // Откуда падает (выше верха доски = анимация сверху)
                 
                 fallData.push({
                     col: c,
-                    toRow: r,
-                    type: cellData.type,
-                    isNew: cellData.isNew,
-                    delay: delay
+                    toRow: toRow,
+                    fromRow: fromRow,
+                    type: cellInfo.type,
+                    isNew: false,
+                    delay: c * 30 // Задержка для волны падения по колонкам
                 });
-                
-                this.board[r][c] = { type: cellData.type };
             }
+            
+            // Новые клетки падают с самого верха
+            for (let i = 0; i < fillCount; i++) {
+                const toRow = rows - 1 - existingCells.length - i;
+                const fromRow = rows + i; // Падает с позиции выше верха
+                
+                fallData.push({
+                    col: c,
+                    toRow: toRow,
+                    fromRow: fromRow,
+                    type: this.randomCell(),
+                    isNew: true,
+                    delay: c * 30
+                });
+            }
+        }
+        
+        // Обновляем доску с новыми данными
+        for (const fall of fallData) {
+            this.board[fall.toRow][fall.col] = { type: fall.type };
         }
         
         // Анимация падения
@@ -582,9 +598,8 @@ window.Game = {
     async animateFalling(fallData, duration) {
         const startTime = performance.now();
         const rows = this.level.rows;
-        const cols = this.level.cols;
         
-        // Сортируем по задержке (сверху вниз падает первым)
+        // Сортируем по задержке
         fallData.sort((a, b) => a.delay - b.delay);
         
         // Создаём копию доски для анимации
@@ -593,28 +608,31 @@ window.Game = {
         return new Promise(resolve => {
             const animate = (currentTime) => {
                 const elapsed = currentTime - startTime;
+                let stillAnimating = false;
                 
                 // Для каждой клетки вычисляем прогресс
                 for (const fall of fallData) {
-                    const fallDelay = fall.delay;
-                    const cellElapsed = elapsed - fallDelay;
+                    const cellElapsed = elapsed - fall.delay;
                     
                     if (cellElapsed < 0) {
-                        // Ещё не началась анимация - рисуем старую позицию (сверху)
+                        // Ещё не началась анимация - рисуем сверху
                         animBoard[fall.toRow][fall.col] = { type: fall.type, yOffset: -1 };
                     } else {
                         const progress = Math.min(cellElapsed / duration, 1);
-                        // eEase-out для плавной остановки
+                        // easeOut cubic для плавной остановки
                         const eased = 1 - Math.pow(1 - progress, 3);
-                        const yOffset = 1 - eased; // от 0 (внизу) до 1 (сверху)
+                        // От 0 (внизу) до 1 (сверху)
+                        const yOffset = 1 - eased;
                         animBoard[fall.toRow][fall.col] = { type: fall.type, yOffset: yOffset };
+                        
+                        if (progress < 1) stillAnimating = true;
                     }
                 }
                 
                 // Рисуем
                 this.drawAnimatedBoard(animBoard);
                 
-                if (elapsed < duration + (cols * 50)) {
+                if (stillAnimating) {
                     requestAnimationFrame(animate);
                 } else {
                     // Анимация завершена - рисуем обычную доску
