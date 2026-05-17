@@ -50,6 +50,29 @@ const Renderer = {
         }
     },
 
+    // Нарисовать доску с анимацией падения
+    drawAnimatedBoard(board) {
+        this.clear();
+
+        const boardWidth = this.cellSize * board.cols;
+        const boardHeight = this.cellSize * board.rows;
+
+        // Рисуем деревянную текстуру доски
+        this.drawWoodTexture(boardWidth, boardHeight);
+
+        // Рисуем клетки с yOffset для анимации
+        for (let row = 0; row < board.rows; row++) {
+            for (let col = 0; col < board.cols; col++) {
+                const cell = board.getCell(row, col);
+                if (cell) {
+                    cell.special = getSpecialType(cell.type);
+                    const yOffset = cell.yOffset || 0;
+                    this.drawCell(cell, row, col, yOffset);
+                }
+            }
+        }
+    },
+
     // Нарисовать текстуру дерева
     drawWoodTexture(boardWidth, boardHeight) {
         // Базовый деревянный цвет
@@ -89,10 +112,10 @@ const Renderer = {
         }
     },
 
-    // Нарисовать одну клетку
-    drawCell(cell, row, col) {
+    // Нарисовать одну клетку (с поддержкой yOffset для анимации)
+    drawCell(cell, row, col, yOffset = 0) {
         const x = this.boardOffset.x + col * this.cellSize;
-        const y = this.boardOffset.y + row * this.cellSize;
+        const y = this.boardOffset.y + row * this.cellSize + (yOffset * this.cellSize);
         const size = this.cellSize;
         const padding = 2;
 
