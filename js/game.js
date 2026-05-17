@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1705261535';
-const BUILD_DATE = '2026-05-17 15:35';
+const GAME_VERSION = '1.1705261610';
+const BUILD_DATE = '2026-05-17 16:10';
 
 window.Game = {
     level: null,
@@ -475,16 +475,22 @@ window.Game = {
                 }
                 this.score += 9 * 15;
             } else if (type === 'DIAGONAL') {
-                // Диагональная бомба взрывает по диагоналям
-                for (let d = -Math.max(rows, cols); d <= Math.max(rows, cols); d++) {
+                // Диагональная бомба взрывает по 1 клетке в каждую сторону по диагоналям (всего 2 клетки)
+                for (let d = 1; d <= 1; d++) {
                     if (row + d >= 0 && row + d < rows && col + d >= 0 && col + d < cols) {
                         allToRemove.add(`${row + d},${col + d}`);
                     }
                     if (row + d >= 0 && row + d < rows && col - d >= 0 && col - d < cols) {
                         allToRemove.add(`${row + d},${col - d}`);
                     }
+                    if (row - d >= 0 && row - d < rows && col + d >= 0 && col + d < cols) {
+                        allToRemove.add(`${row - d},${col + d}`);
+                    }
+                    if (row - d >= 0 && row - d < rows && col - d >= 0 && col - d < cols) {
+                        allToRemove.add(`${row - d},${col - d}`);
+                    }
                 }
-                this.score += 15 * 20;
+                this.score += 4 * 10;
             }
         }
         
