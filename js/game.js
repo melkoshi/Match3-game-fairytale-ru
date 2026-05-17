@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1705262055';
-const BUILD_DATE = '2026-05-17 20:55';
+const GAME_VERSION = '1.1705262045';
+const BUILD_DATE = '2026-05-17 20:45';
 
 window.Game = {
     level: null,
@@ -64,14 +64,12 @@ window.Game = {
     },
     
     vibrate(pattern) {
-        // Показываем индикатор на экране
-        this.showVibrateIndicator();
-        
         // Telegram WebApp HapticFeedback
         try {
             const tg = window.Telegram && window.Telegram.WebApp;
             if (tg && tg.HapticFeedback) {
                 const haptic = tg.HapticFeedback;
+                // Пробуем разные типы вибрации
                 if (typeof pattern === 'number' && pattern > 50) {
                     haptic.impactOccurred('heavy');
                 } else if (typeof pattern === 'number') {
@@ -91,26 +89,6 @@ window.Game = {
                 navigator.vibrate(pattern);
             } catch (e) {}
         }
-    },
-    
-    showVibrateIndicator() {
-        let indicator = document.getElementById('vibrateIndicator');
-        if (!indicator) {
-            indicator = document.createElement('div');
-            indicator.id = 'vibrateIndicator';
-            indicator.style.cssText = 'position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.8);color:white;padding:8px 12px;border-radius:8px;font-size:11px;z-index:9999;font-family:sans-serif;';
-            document.body.appendChild(indicator);
-        }
-        
-        const tg = window.Telegram && window.Telegram.WebApp;
-        const hasHaptic = !!(tg && tg.HapticFeedback);
-        const hasVibrate = 'vibrate' in navigator;
-        
-        indicator.innerHTML = `🎯 Вибрация?<br>HapticFeedback: ${hasHaptic ? '✅' : '❌'}<br>navigator.vibrate: ${hasVibrate ? '✅' : '❌'}`;
-        
-        setTimeout(() => {
-            if (indicator) indicator.remove();
-        }, 4000);
     },
     
     startLevel(levelId) {
