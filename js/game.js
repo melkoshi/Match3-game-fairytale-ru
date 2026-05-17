@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1705260215';
-const BUILD_DATE = '2026-05-17 02:15';
+const GAME_VERSION = '1.1705261110';
+const BUILD_DATE = '2026-05-17 11:10';
 
 window.Game = {
     level: null,
@@ -364,9 +364,9 @@ window.Game = {
                 if (match.length >= 5) {
                     specialsToCreate.push({ ...centerCell, specialType: 'BOMB' });
                 } else if (match.length === 4) {
-                    // Ракета - запоминаем направление
+                    // Ракета - зависит от направления
                     const isHorizontal = match.cells.every(c => c.row === match.cells[0].row);
-                    specialsToCreate.push({ ...centerCell, specialType: isHorizontal ? 'ROCKET' : 'ROCKET' });
+                    specialsToCreate.push({ ...centerCell, specialType: isHorizontal ? 'ROCKET_H' : 'ROCKET_V' });
                 }
             }
         }
@@ -449,15 +449,18 @@ window.Game = {
             const rows = this.level.rows;
             const cols = this.level.cols;
             
-            if (type === 'ROCKET') {
-                // Ракета взрывает всю строку и столбец
+            if (type === 'ROCKET' || type === 'ROCKET_H') {
+                // Горизонтальная ракета - взрывает всю строку
                 for (let c = 0; c < cols; c++) {
                     allToRemove.add(`${row},${c}`);
                 }
+                this.score += cols * 10;
+            } else if (type === 'ROCKET_V') {
+                // Вертикальная ракета - взрывает весь столбец
                 for (let r = 0; r < rows; r++) {
                     allToRemove.add(`${r},${col}`);
                 }
-                this.score += (cols + rows) * 10;
+                this.score += rows * 10;
             } else if (type === 'BOMB') {
                 // Бомба взрывает область 3x3
                 for (let dr = -1; dr <= 1; dr++) {
@@ -704,8 +707,7 @@ window.Game = {
     showHint() {
         // Убираем предыдущую подсказку
         if (this.hintShown) {
-            Renderer.clear();
-            Renderer.drawBoard(Board);
+            this.render();
             this.hintShown = false;
             return;
         }
@@ -720,13 +722,13 @@ window.Game = {
                 if (count >= 6) {
                     clearInterval(flashInterval);
                     this.hintShown = false;
-                    Renderer.drawBoard(Board);
+                    this.render();
                 } else {
                     if (count % 2 === 0) {
+                        this.render();
                         Renderer.drawHint(hint.row1, hint.col1, hint.row2, hint.col2);
                     } else {
-                        Renderer.clear();
-                        Renderer.drawBoard(Board);
+                        this.render();
                     }
                     count++;
                 }

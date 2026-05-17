@@ -13,6 +13,8 @@ const ICONS = {
 
     // Специальные иконки (создаются при комбинациях)
     ROCKET: { emoji: '🚀', image: 'media/icons/rocket.png', name: 'Ракета', color: '#ffd700', points: 50, special: 'rocket' },
+    ROCKET_H: { emoji: '➡️', image: 'media/icons/rocket_h.png', name: 'Ракета →', color: '#ffd700', points: 50, special: 'rocket_h' },
+    ROCKET_V: { emoji: '⬇️', image: 'media/icons/rocket_v.png', name: 'Ракета ↓', color: '#ffd700', points: 50, special: 'rocket_v' },
     BOMB: { emoji: '💣', image: 'media/icons/bomb.png', name: 'Бомба', color: '#ff4500', points: 75, special: 'bomb' },
     DIAGONAL: { emoji: '✨', image: 'media/icons/diagonal.png', name: 'Диа-бомба', color: '#ff69b4', points: 100, special: 'star' }
 };

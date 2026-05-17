@@ -132,6 +132,8 @@ const Renderer = {
 
         switch (cell.special) {
             case 'rocket':
+            case 'rocket_h':
+            case 'rocket_v':
                 return 'rgba(255, 215, 0, 0.3)';
             case 'bomb':
                 return 'rgba(255, 69, 0, 0.3)';
@@ -203,6 +205,8 @@ const Renderer = {
         let color;
         switch (special) {
             case 'rocket':
+            case 'rocket_h':
+            case 'rocket_v':
                 color = 'rgba(255, 215, 0, 0.6)';
                 break;
             case 'bomb':
