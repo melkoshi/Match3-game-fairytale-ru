@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1705262005';
-const BUILD_DATE = '2026-05-17 20:05';
+const GAME_VERSION = '1.1705262010';
+const BUILD_DATE = '2026-05-17 20:10';
 
 window.Game = {
     level: null,
@@ -539,7 +539,7 @@ window.Game = {
         const fallDuration = 200; // Длительность падения одной клетки
         
         // Собираем данные о падении для анимации
-        const fallData = []; // { fromRow, toRow, col, type, isNew, delay }
+        const fallData = []; // { fromRow, toRow, col, type, isNew }
         
         for (let c = 0; c < cols; c++) {
             // Собираем не-null клетки (они уже "упали" вниз после очистки)
@@ -553,8 +553,7 @@ window.Game = {
             // Сколько новых клеток нужно создать
             const fillCount = rows - existingCells.length;
             
-            // Новые клетки падают сверху, существующие падают на освободившиеся места
-            // Для каждой существующей клетки считаем откуда она падает
+            // Существующие клетки падают на освободившиеся места
             for (let i = 0; i < existingCells.length; i++) {
                 const cellInfo = existingCells[i];
                 const toRow = rows - 1 - i; // Куда клетка попадает (снизу вверх)
@@ -565,8 +564,7 @@ window.Game = {
                     toRow: toRow,
                     fromRow: fromRow,
                     type: cellInfo.type,
-                    isNew: false,
-                    delay: c * 30 // Задержка для волны падения по колонкам
+                    isNew: false
                 });
             }
             
@@ -580,8 +578,7 @@ window.Game = {
                     toRow: toRow,
                     fromRow: fromRow,
                     type: this.randomCell(),
-                    isNew: true,
-                    delay: c * 30
+                    isNew: true
                 });
             }
         }
@@ -597,10 +594,6 @@ window.Game = {
     
     async animateFalling(fallData, duration) {
         const startTime = performance.now();
-        const rows = this.level.rows;
-        
-        // Сортируем по задержке
-        fallData.sort((a, b) => a.delay - b.delay);
         
         // Создаём копию доски для анимации
         const animBoard = JSON.parse(JSON.stringify(this.board));
@@ -612,21 +605,14 @@ window.Game = {
                 
                 // Для каждой клетки вычисляем прогресс
                 for (const fall of fallData) {
-                    const cellElapsed = elapsed - fall.delay;
+                    const progress = Math.min(elapsed / duration, 1);
+                    // easeOut cubic для плавной остановки
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    // От 1 (сверху) до 0 (внизу)
+                    const yOffset = 1 - eased;
+                    animBoard[fall.toRow][fall.col] = { type: fall.type, yOffset: yOffset };
                     
-                    if (cellElapsed < 0) {
-                        // Ещё не началась анимация - рисуем сверху
-                        animBoard[fall.toRow][fall.col] = { type: fall.type, yOffset: -1 };
-                    } else {
-                        const progress = Math.min(cellElapsed / duration, 1);
-                        // easeOut cubic для плавной остановки
-                        const eased = 1 - Math.pow(1 - progress, 3);
-                        // От 0 (внизу) до 1 (сверху)
-                        const yOffset = 1 - eased;
-                        animBoard[fall.toRow][fall.col] = { type: fall.type, yOffset: yOffset };
-                        
-                        if (progress < 1) stillAnimating = true;
-                    }
+                    if (progress < 1) stillAnimating = true;
                 }
                 
                 // Рисуем
