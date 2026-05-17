@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1705261130';
-const BUILD_DATE = '2026-05-17 11:30';
+const GAME_VERSION = '1.1705261330';
+const BUILD_DATE = '2026-05-17 13:30';
 
 window.Game = {
     level: null,
@@ -212,12 +212,14 @@ window.Game = {
         
         // Меняем местами
         const temp = this.board[r1][c1];
+        
+        // Проверяем Special ДО свопа!
         const sourceSpecial = temp && isSpecialIcon(temp.type) ? temp.type : null;
+        const destSpecial = this.board[r2][c2] && isSpecialIcon(this.board[r2][c2].type) ? this.board[r2][c2].type : null;
+        
+        // Теперь меняем
         this.board[r1][c1] = this.board[r2][c2];
         this.board[r2][c2] = temp;
-        
-        // Проверяем есть ли специальная иконка на месте назначения
-        const destSpecial = this.board[r2][c2] && isSpecialIcon(this.board[r2][c2].type) ? this.board[r2][c2].type : null;
         
         this.render();
         await this.delay(150);
@@ -244,13 +246,10 @@ window.Game = {
         // Если есть специальная иконка - активируем её
         const specialsToActivate = [];
         if (sourceSpecial) {
-            // sourceSpecial активируется на позиции r2,c2 (куда попала после свопа)
+            // sourceSpecial активируется на позиции r2,c2 (новая позиция после свопа)
             specialsToActivate.push({ row: r2, col: c2, type: sourceSpecial });
         }
-        if (destSpecial) {
-            // destSpecial активируется на позиции r1,c1 (куда попала после свопа)
-            specialsToActivate.push({ row: r1, col: c1, type: destSpecial });
-        }
+        // destSpecial не активируем отдельна - она останется на доске и handleMatches её найдёт и активирует
         if (specialsToActivate.length > 0) {
             window.Sound.play('special');
             this.vibrate([50, 30, 50, 30, 80]);
