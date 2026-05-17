@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1705261630';
-const BUILD_DATE = '2026-05-17 16:30';
+const GAME_VERSION = '1.1705261645';
+const BUILD_DATE = '2026-05-17 16:45';
 
 window.Game = {
     level: null,
@@ -144,33 +144,50 @@ window.Game = {
     },
     
     removeInitialMatches(board, cols, rows) {
-        // Убираем 3 в ряд
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols - 2; c++) {
-                if (board[r] && board[r][c] && board[r][c+1] && board[r][c+2] &&
-                    board[r][c].type === board[r][c+1].type && board[r][c].type === board[r][c+2].type) {
-                    board[r][c+2].type = this.randomCell();
+        let iterations = 0;
+        const maxIterations = 100; // Защита от бесконечного цикла
+        
+        do {
+            let modified = false;
+            
+            // Убираем горизонтальные 3 в ряд
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols - 2; c++) {
+                    if (board[r] && board[r][c] && board[r][c+1] && board[r][c+2] &&
+                        board[r][c].type === board[r][c+1].type && board[r][c].type === board[r][c+2].type) {
+                        board[r][c+2].type = this.randomCell();
+                        modified = true;
+                    }
                 }
             }
-        }
-        for (let c = 0; c < cols; c++) {
-            for (let r = 0; r < rows - 2; r++) {
-                if (board[r] && board[r][c] && board[r+1] && board[r+1][c] && board[r+2] && board[r+2][c] &&
-                    board[r][c].type === board[r+1][c].type && board[r][c].type === board[r+2][c].type) {
-                    board[r+2][c].type = this.randomCell();
+            
+            // Убираем вертикальные 3 в ряд
+            for (let c = 0; c < cols; c++) {
+                for (let r = 0; r < rows - 2; r++) {
+                    if (board[r] && board[r][c] && board[r+1] && board[r+1][c] && board[r+2] && board[r+2][c] &&
+                        board[r][c].type === board[r+1][c].type && board[r][c].type === board[r+2][c].type) {
+                        board[r+2][c].type = this.randomCell();
+                        modified = true;
+                    }
                 }
             }
-        }
-        // Убираем квадраты 2x2
-        for (let r = 0; r < rows - 1; r++) {
-            for (let c = 0; c < cols - 1; c++) {
-                if (!board[r] || !board[r][c] || !board[r][c+1] || !board[r+1] || !board[r+1][c] || !board[r+1][c+1]) continue;
-                const type = board[r][c].type;
-                if (type === board[r][c+1].type && type === board[r+1][c].type && type === board[r+1][c+1].type) {
-                    board[r][c+1].type = this.randomCell();
+            
+            // Убираем квадраты 2x2
+            for (let r = 0; r < rows - 1; r++) {
+                for (let c = 0; c < cols - 1; c++) {
+                    if (!board[r] || !board[r][c] || !board[r][c+1] || !board[r+1] || !board[r+1][c] || !board[r+1][c+1]) continue;
+                    const type = board[r][c].type;
+                    if (type === board[r][c+1].type && type === board[r+1][c].type && type === board[r+1][c+1].type) {
+                        board[r][c+1].type = this.randomCell();
+                        modified = true;
+                    }
                 }
             }
-        }
+            
+            iterations++;
+            if (!modified) break; // Нет изменений - можно выходить
+            
+        } while (iterations < maxIterations);
     },
     
     onClick(e) {
