@@ -4,23 +4,23 @@ const LEVELS = [];
 
 // Инициализация уровней
 function initLevels() {
-    // Уровни 1-15 с прогрессирующей сложностью
+    // Уровни 1-15 с прогрессирующей сложностью (ходы: 8, 10, 12, 14...)
     const levelConfigs = [
-        { id: 1, cols: 6, rows: 6, moves: 25, target: 300, name: 'Луг' },
-        { id: 2, cols: 6, rows: 6, moves: 24, target: 400, name: 'Опушка' },
-        { id: 3, cols: 7, rows: 6, moves: 23, target: 500, name: 'Лес' },
-        { id: 4, cols: 7, rows: 7, moves: 22, target: 600, name: 'Тропинка' },
-        { id: 5, cols: 7, rows: 7, moves: 21, target: 750, name: 'Ручей' },
-        { id: 6, cols: 7, rows: 7, moves: 20, target: 900, name: 'Мост' },
+        { id: 1, cols: 6, rows: 6, moves: 8, target: 300, name: 'Луг' },
+        { id: 2, cols: 6, rows: 6, moves: 10, target: 400, name: 'Опушка' },
+        { id: 3, cols: 7, rows: 6, moves: 12, target: 500, name: 'Лес' },
+        { id: 4, cols: 7, rows: 7, moves: 14, target: 600, name: 'Тропинка' },
+        { id: 5, cols: 7, rows: 7, moves: 16, target: 750, name: 'Ручей' },
+        { id: 6, cols: 7, rows: 7, moves: 18, target: 900, name: 'Мост' },
         { id: 7, cols: 8, rows: 7, moves: 20, target: 1050, name: 'Поляна' },
-        { id: 8, cols: 8, rows: 7, moves: 19, target: 1200, name: 'Цветник' },
-        { id: 9, cols: 8, rows: 8, moves: 18, target: 1400, name: 'Ягодник' },
-        { id: 10, cols: 8, rows: 8, moves: 18, target: 1600, name: 'Грибное место' },
-        { id: 11, cols: 8, rows: 8, moves: 17, target: 1850, name: 'Древний дуб' },
-        { id: 12, cols: 9, rows: 8, moves: 17, target: 2100, name: 'Берёзовая роща' },
-        { id: 13, cols: 9, rows: 8, moves: 16, target: 2400, name: 'Кедровый бор' },
-        { id: 14, cols: 9, rows: 9, moves: 15, target: 2750, name: 'Верхушка горы' },
-        { id: 15, cols: 9, rows: 9, moves: 15, target: 3000, name: 'Царство Лесовика' }
+        { id: 8, cols: 8, rows: 7, moves: 22, target: 1200, name: 'Цветник' },
+        { id: 9, cols: 8, rows: 8, moves: 24, target: 1400, name: 'Ягодник' },
+        { id: 10, cols: 8, rows: 8, moves: 26, target: 1600, name: 'Грибное место' },
+        { id: 11, cols: 8, rows: 8, moves: 28, target: 1850, name: 'Древний дуб' },
+        { id: 12, cols: 9, rows: 8, moves: 30, target: 2100, name: 'Берёзовая роща' },
+        { id: 13, cols: 9, rows: 8, moves: 32, target: 2400, name: 'Кедровый бор' },
+        { id: 14, cols: 9, rows: 9, moves: 34, target: 2750, name: 'Верхушка горы' },
+        { id: 15, cols: 9, rows: 9, moves: 36, target: 3000, name: 'Царство Лесовика' }
     ];
 
     for (const config of levelConfigs) {
