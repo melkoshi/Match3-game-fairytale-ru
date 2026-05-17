@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1705262020';
-const BUILD_DATE = '2026-05-17 20:20';
+const GAME_VERSION = '1.1705262030';
+const BUILD_DATE = '2026-05-17 20:30';
 
 window.Game = {
     level: null,
@@ -64,32 +64,29 @@ window.Game = {
     },
     
     vibrate(pattern) {
+        // Telegram WebApp HapticFeedback
         try {
-            // Telegram WebApp HapticFeedback
             const tg = window.Telegram && window.Telegram.WebApp;
             if (tg && tg.HapticFeedback) {
                 const haptic = tg.HapticFeedback;
-                if (haptic.impactOccurred) {
+                // Пробуем разные типы вибрации
+                if (typeof pattern === 'number' && pattern > 50) {
+                    haptic.impactOccurred('heavy');
+                } else if (typeof pattern === 'number') {
+                    haptic.impactOccurred('light');
+                } else if (Array.isArray(pattern)) {
                     haptic.impactOccurred('medium');
-                    return;
-                }
-                if (haptic.notificationOccurred) {
-                    haptic.notificationOccurred('success');
-                    return;
-                }
-                if (haptic.selectionChanged) {
+                } else {
                     haptic.selectionChanged();
-                    return;
                 }
+                return;
             }
         } catch (e) {}
         
-        // iOS Safari and other browsers
+        // Fallback: Web Vibration API
         if ('vibrate' in navigator) {
             try {
-                // iOS requires single number, not array
-                const ms = typeof pattern === 'number' ? pattern : (Array.isArray(pattern) ? (pattern[0] || 50) : 50);
-                navigator.vibrate(ms);
+                navigator.vibrate(pattern);
             } catch (e) {}
         }
     },
