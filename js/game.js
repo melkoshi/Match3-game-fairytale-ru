@@ -1,8 +1,8 @@
 // Главная игровая логика - расширенная версия с ракетами, бомбами и диагональным взрывом
 
 // Версия игры - менять вручную при каждом изменении!
-const GAME_VERSION = '1.1705262035';
-const BUILD_DATE = '2026-05-17 20:35';
+const GAME_VERSION = '1.1705262045';
+const BUILD_DATE = '2026-05-17 20:45';
 
 window.Game = {
     level: null,
@@ -67,27 +67,42 @@ window.Game = {
         // Telegram WebApp HapticFeedback
         try {
             const tg = window.Telegram && window.Telegram.WebApp;
+            console.log('[Vibrate] Telegram WebApp:', tg);
             if (tg && tg.HapticFeedback) {
+                console.log('[Vibrate] HapticFeedback available');
                 const haptic = tg.HapticFeedback;
                 // Пробуем разные типы вибрации
                 if (typeof pattern === 'number' && pattern > 50) {
+                    console.log('[Vibrate] Using heavy impact');
                     haptic.impactOccurred('heavy');
                 } else if (typeof pattern === 'number') {
+                    console.log('[Vibrate] Using light impact');
                     haptic.impactOccurred('light');
                 } else if (Array.isArray(pattern)) {
+                    console.log('[Vibrate] Using medium impact');
                     haptic.impactOccurred('medium');
                 } else {
+                    console.log('[Vibrate] Using selection');
                     haptic.selectionChanged();
                 }
                 return;
+            } else {
+                console.log('[Vibrate] HapticFeedback NOT available');
             }
-        } catch (e) {}
+        } catch (e) {
+            console.log('[Vibrate] Error:', e.message);
+        }
         
         // Fallback: Web Vibration API
         if ('vibrate' in navigator) {
             try {
+                console.log('[Vibrate] Using navigator.vibrate');
                 navigator.vibrate(pattern);
-            } catch (e) {}
+            } catch (e) {
+                console.log('[Vibrate] navigator.vibrate error:', e.message);
+            }
+        } else {
+            console.log('[Vibrate] navigator.vibrate NOT available');
         }
     },
     
